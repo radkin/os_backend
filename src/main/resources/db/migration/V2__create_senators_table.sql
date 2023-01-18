@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS senate_members
+CREATE TABLE IF NOT EXISTS senators
 (
     id SERIAL PRIMARY KEY,
     pp_id BIGINT,

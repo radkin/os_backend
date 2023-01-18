@@ -7,9 +7,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name="senate_members")
+@Table(name="senators")
 @Data
-public class SenateMember {
+public class Senator {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
