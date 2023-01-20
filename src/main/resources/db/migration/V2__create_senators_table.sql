@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS senators
     in_office BOOLEAN,
     dw_nominate DOUBLE PRECISION,
     seniority INTEGER,
-    next_election DATE,
+    next_election TEXT,
     total_votes INTEGER,
     missed_votes INTEGER,
     total_present INTEGER,

@@ -106,7 +106,7 @@ public class Senator {
     private Integer seniority;
 
     @Column(name="next_election")
-    private LocalDate nextElection;
+    private String nextElection;
 
     @Column(name="total_votes")
     private Integer totalVotes;

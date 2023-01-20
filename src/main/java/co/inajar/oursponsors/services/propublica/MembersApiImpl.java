@@ -1,5 +1,6 @@
 package co.inajar.oursponsors.services.propublica;
 
+import co.inajar.oursponsors.helpers.DateTimeConversion;
 import co.inajar.oursponsors.dbOs.entities.chamber.senate.Senator;
 import co.inajar.oursponsors.dbOs.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.propublica.ProPublicaSenator;
@@ -13,7 +14,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -80,7 +85,10 @@ public class MembersApiImpl implements MembersApiManager {
         senator.setMiddleName(sr.getMiddleName());
         senator.setLastName(sr.getLastName());
         senator.setSuffix(sr.getSuffix());
-//        senator.setDateOfBirth(sr.getDateOfBirth());
+
+        LocalDate dob = DateTimeConversion.formatStringForLocalDate(sr.getDateOfBirth());
+        senator.setDateOfBirth(dob);
+
         senator.setGender(sr.getGender());
         senator.setParty(sr.getParty());
         senator.setLeadershipRole(sr.getLeadershipRole());
@@ -88,6 +96,7 @@ public class MembersApiImpl implements MembersApiManager {
         senator.setFacebookAccount(sr.getFacebookAccount());
         senator.setYoutubeAccount(sr.getYoutubeAccount());
         senator.setGovtrackId(sr.getGovtrackId());
+        senator.setCspanId(sr.getCspanId());
         senator.setVotesmartId(sr.getVotesmartId());
         senator.setIcpsrId(sr.getIcpsrId());
         senator.setCrpId(sr.getCrpId());
@@ -99,11 +108,14 @@ public class MembersApiImpl implements MembersApiManager {
         senator.setInOffice(sr.getInOffice());
         senator.setDwNominate(sr.getDwNominate());
         senator.setSeniority(sr.getSeniority());
-//        senator.setNextElection(sr.getNextElection());
+        senator.setNextElection(sr.getNextElection());
         senator.setTotalVotes(sr.getTotalVotes());
         senator.setMissedVotes(sr.getMissedVotes());
         senator.setTotalPresent(sr.getTotalPresent());
-//        senator.setLastUpdated(sr.getLastUpdated());
+
+        LocalDateTime lastUpdate = DateTimeConversion.formatStringForLocalDateTime(sr.getLastUpdated());
+        senator.setLastUpdated(lastUpdate);
+
         senator.setOcdId(sr.getOcdId());
         senator.setOffice(sr.getOffice());
         senator.setPhone(sr.getPhone());
