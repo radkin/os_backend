@@ -124,7 +124,7 @@ public class MembersApiImpl implements MembersApiManager {
     }
 
     private Optional<Senator> getSenatorByPpId(String proPublicaId) {
-        return senatorRepo.findSenatorByProPublicaId(proPublicaId);
+        return senatorRepo.findFirstSenatorByProPublicaId(proPublicaId);
     }
     private Senator updateSenator(ProPublicaSenator proPublicaSenator) {
         var possibleSenator = getSenatorByPpId(proPublicaSenator.getId());
