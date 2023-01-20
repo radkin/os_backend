@@ -11,5 +11,6 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public interface SenatorRepo extends JpaRepository<Senator, Long> {
 
-    Optional<Senator> findSenatorById(Long id);
+    Optional<Senator> findSenatorByProPublicaId(String proPublicaId);
 }
+

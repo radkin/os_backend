@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS senators
 (
     id SERIAL PRIMARY KEY,
-    pp_id BIGINT,
+    pp_id TEXT,
     title TEXT,
     short_title TEXT,
     api_uri TEXT, 

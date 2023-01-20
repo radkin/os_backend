@@ -2,6 +2,7 @@ package co.inajar.oursponsors.services.propublica;
 
 import co.inajar.oursponsors.dbOs.entities.chamber.senate.Senator;
 import co.inajar.oursponsors.dbOs.repos.propublica.SenatorRepo;
+import co.inajar.oursponsors.models.propublica.ProPublicaSenator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,9 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -32,7 +31,7 @@ public class MembersApiImpl implements MembersApiManager {
     private List<Senator> getSenators() { return senatorRepo.findAll(); }
 
     @Override
-    public List<Senator> getSenatorsListResponse() {
+    public List<ProPublicaSenator> getSenatorsListResponse() {
 //        Integer page = 1;
         var path = String.format("congress/v1/117/senate/members.json");
         var webClient = getClient().get()
@@ -46,14 +45,15 @@ public class MembersApiImpl implements MembersApiManager {
     }
 
 
-    private List<Senator> mapSenatorResponseToModel(String SenatorResponse) {
-        var mappedSenators = new ArrayList<Senator>();
+    private List<ProPublicaSenator> mapSenatorResponseToModel(String response) {
+        var mappedSenators = new ArrayList<ProPublicaSenator>();
         var objectMapper = new ObjectMapper();
         try {
-            var tree = objectMapper.readTree(SenatorResponse);
-            for (JsonNode jsonNode : tree) {
+            var tree = objectMapper.readTree(response);
+            var members = tree.get("results").get(0).get("members");
+            for (JsonNode jsonNode : members) {
                 try {
-                    mappedSenators.add(objectMapper.treeToValue(jsonNode, Senator.class));
+                    mappedSenators.add(objectMapper.treeToValue(jsonNode, ProPublicaSenator.class));
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
@@ -71,8 +71,8 @@ public class MembersApiImpl implements MembersApiManager {
                 .build();
     }
 
-    private Senator setSenator(Senator senator, Senator sr) {
-        senator.setPpId(sr.getId());
+    private Senator setSenator(Senator senator, ProPublicaSenator sr) {
+        senator.setProPublicaId(sr.getId());
         senator.setTitle(sr.getTitle());
         senator.setShortTitle(sr.getShortTitle());
         senator.setApiUri(sr.getApiUri());
@@ -80,7 +80,7 @@ public class MembersApiImpl implements MembersApiManager {
         senator.setMiddleName(sr.getMiddleName());
         senator.setLastName(sr.getLastName());
         senator.setSuffix(sr.getSuffix());
-        senator.setDateOfBirth(sr.getDateOfBirth());
+//        senator.setDateOfBirth(sr.getDateOfBirth());
         senator.setGender(sr.getGender());
         senator.setParty(sr.getParty());
         senator.setLeadershipRole(sr.getLeadershipRole());
@@ -99,11 +99,11 @@ public class MembersApiImpl implements MembersApiManager {
         senator.setInOffice(sr.getInOffice());
         senator.setDwNominate(sr.getDwNominate());
         senator.setSeniority(sr.getSeniority());
-        senator.setNextElection(sr.getNextElection());
+//        senator.setNextElection(sr.getNextElection());
         senator.setTotalVotes(sr.getTotalVotes());
         senator.setMissedVotes(sr.getMissedVotes());
         senator.setTotalPresent(sr.getTotalPresent());
-        senator.setLastUpdated(sr.getLastUpdated());
+//        senator.setLastUpdated(sr.getLastUpdated());
         senator.setOcdId(sr.getOcdId());
         senator.setOffice(sr.getOffice());
         senator.setPhone(sr.getPhone());
@@ -117,39 +117,39 @@ public class MembersApiImpl implements MembersApiManager {
         return senator;
     }
 
-    private Senator createSenator(Senator senatorResponse) {
+    private Senator createSenator(ProPublicaSenator proPublicaSenator) {
         var newSenator = new Senator();
-        var bp = setSenator(newSenator, senatorResponse);
+        var bp = setSenator(newSenator, proPublicaSenator);
         return senatorRepo.save(bp);
     }
 
-    private Optional<Senator> getSenatorByBlogId(Long id) {
-        return senatorRepo.findSenatorById(id);
+    private Optional<Senator> getSenatorByPpId(String proPublicaId) {
+        return senatorRepo.findSenatorByProPublicaId(proPublicaId);
     }
-    private Senator updateSenator(Senator senatorResponse) {
-        var possibleSenator = getSenatorByBlogId(senatorResponse.getId());
+    private Senator updateSenator(ProPublicaSenator proPublicaSenator) {
+        var possibleSenator = getSenatorByPpId(proPublicaSenator.getId());
         if (possibleSenator.isPresent()) {
             var senator = possibleSenator.get();
-            var bp = setSenator(senator, senatorResponse);
+            var bp = setSenator(senator, proPublicaSenator);
             return senatorRepo.save(bp);
         } else {
-            logger.error("No Blog Post with ID {}", senatorResponse.getId());
+            logger.error("No Blog Post with ID {}", proPublicaSenator.getId());
             return null;
         }
 
     }
 
-    public List<Senator> mapPropublicaResponseToSenators(List<Senator> senators) {
-        var senatorIds = getSenators().parallelStream()
-                .map(Senator::getId)
+    public List<Senator> mapPropublicaResponseToSenators(List<ProPublicaSenator> senators) {
+        var senatorPPIds = getSenators().parallelStream()
+                .map(Senator::getProPublicaId)
                 .collect(Collectors.toList());
 
         var newSenators = senators.stream()
-                .filter(p -> !senatorIds.contains(p.getId()))
+                .filter(p -> !senatorPPIds.contains(p.getId()))
                 .collect(Collectors.toList());
 
         var updatePosts = senators.stream()
-                .filter(p -> senatorIds.contains(p.getId()))
+                .filter(p -> senatorPPIds.contains(p.getId()))
                 .collect(Collectors.toList());
 
         var mergedList = new ArrayList<Senator>();

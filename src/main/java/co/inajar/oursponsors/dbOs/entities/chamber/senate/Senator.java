@@ -16,7 +16,7 @@ public class Senator {
     private Long id;
 
     @Column(name="pp_id", unique = true)
-    private Long ppId;
+    private String proPublicaId;
 
     @Column(name="title")
     private String title;
