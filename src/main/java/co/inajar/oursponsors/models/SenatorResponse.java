@@ -3,6 +3,9 @@ import co.inajar.oursponsors.dbOs.entities.chamber.senate.Senator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 public class SenatorResponse {
 
     public SenatorResponse(Senator senator) {
@@ -15,7 +18,7 @@ public class SenatorResponse {
         middleName = senator.getMiddleName();
         lastName = senator.getLastName();
         suffix = senator.getSuffix();
-//        dateOfBirth = senator.getDateOfBirth();
+        dateOfBirth = senator.getDateOfBirth();
         gender = senator.getGender();
         party = senator.getParty();
         leadershipRole = senator.getLeadershipRole();
@@ -34,11 +37,11 @@ public class SenatorResponse {
         inOffice = senator.getInOffice();
         dwNominate = senator.getDwNominate();
         seniority = senator.getSeniority();
-//        nextElection = senator.getNextElection();
+        nextElection = senator.getNextElection();
         totalVotes = senator.getTotalVotes();
         missedVotes = senator.getMissedVotes();
         totalPresent = senator.getTotalPresent();
-//        lastUpdated = senator.getLastUpdated();
+        lastUpdated = senator.getLastUpdated();
         ocdId = senator.getOcdId();
         office = senator.getOffice();
         phone = senator.getPhone();
@@ -79,8 +82,8 @@ public class SenatorResponse {
     @JsonProperty(value="suffix")
     private String suffix;
 
-//    @JsonProperty(value="date_of_birth")
-//    private LocalDate dateOfBirth;
+    @JsonProperty(value="date_of_birth")
+    private LocalDate dateOfBirth;
 
     @JsonProperty(value="gender")
     private String gender;
@@ -145,8 +148,8 @@ public class SenatorResponse {
     @JsonProperty(value="seniority")
     private Integer seniority;
 
-//    @JsonProperty(value="next_election")
-//    private LocalDate nextElection;
+    @JsonProperty(value="next_election")
+    private String nextElection;
 
     @JsonProperty(value="total_votes")
     private Integer totalVotes;
@@ -157,8 +160,8 @@ public class SenatorResponse {
     @JsonProperty(value="total_present")
     private Integer totalPresent;
 
-//    @JsonProperty(value="last_updated")
-//    private LocalDateTime lastUpdated;
+    @JsonProperty(value="last_updated")
+    private LocalDateTime lastUpdated;
 
     @JsonProperty(value="ocd_id")
     private String ocdId;
