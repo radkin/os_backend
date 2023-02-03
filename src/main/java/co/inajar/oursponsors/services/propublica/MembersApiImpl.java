@@ -28,7 +28,7 @@ public class MembersApiImpl implements MembersApiManager {
     @Autowired
     private SenatorRepo senatorRepo;
     
-    private Logger logger = LoggerFactory.getLogger((MembersApiImpl.class));
+    private Logger logger = LoggerFactory.getLogger(MembersApiImpl.class);
 
     @Value("${propublica.inajar.token.secret}")
     private String propublicaApiKey;
