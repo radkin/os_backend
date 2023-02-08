@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 
 public class SenatorResponse {
 
+    private static final String BASE_URL = "https://theunitedstates.io/images/congress/original";
+
     public SenatorResponse(Senator senator) {
         id = senator.getId();
         proPublicaId = senator.getProPublicaId();
@@ -52,7 +54,7 @@ public class SenatorResponse {
         missedVotesPct = senator.getMissedVotesPct();
         votesWithPartyPct = senator.getVotesWithPartyPct();
         votesAgainstPartyPct = senator.getVotesAgainstPartyPct();
-
+        imageUrl = BASE_URL + "/" + senator.getProPublicaId() + ".jpg";
     }
 
     @JsonProperty(value = "id")
@@ -194,5 +196,8 @@ public class SenatorResponse {
 
     @JsonProperty(value="votes_against_party_pct")
     private Double votesAgainstPartyPct;
+
+    @JsonProperty(value="image_url")
+    private String imageUrl;
 
 }
