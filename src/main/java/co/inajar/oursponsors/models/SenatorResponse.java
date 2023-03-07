@@ -28,6 +28,7 @@ public class SenatorResponse {
         facebookAccount = senator.getFacebookAccount();
         youtubeAccount = senator.getYoutubeAccount();
         govtrackId = senator.getGovtrackId();
+        cspanId = senator.getCspanId();
         votesmartId = senator.getVotesmartId();
         icpsrId = senator.getIcpsrId();
         crpId = senator.getCrpId();
