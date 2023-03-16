@@ -1,68 +1,17 @@
-package co.inajar.oursponsors.models;
-import co.inajar.oursponsors.dbOs.entities.chamber.senate.Senator;
+package co.inajar.oursponsors.models.propublica;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
-public class SenatorResponse {
-
-    private static final String BASE_URL = "https://theunitedstates.io/images/congress/original";
-
-    public SenatorResponse(Senator senator) {
-        id = senator.getId();
-        proPublicaId = senator.getProPublicaId();
-        title = senator.getTitle();
-        shortTitle = senator.getShortTitle();
-        apiUri = senator.getApiUri();
-        firstName = senator.getFirstName();
-        middleName = senator.getMiddleName();
-        lastName = senator.getLastName();
-        suffix = senator.getSuffix();
-        dateOfBirth = senator.getDateOfBirth();
-        gender = senator.getGender();
-        party = senator.getParty();
-        leadershipRole = senator.getLeadershipRole();
-        twitterAccount = senator.getTwitterAccount();
-        facebookAccount = senator.getFacebookAccount();
-        youtubeAccount = senator.getYoutubeAccount();
-        govtrackId = senator.getGovtrackId();
-        cspanId = senator.getCspanId();
-        votesmartId = senator.getVotesmartId();
-        icpsrId = senator.getIcpsrId();
-        crpId = senator.getCrpId();
-        googleEntityId = senator.getGoogleEntityId();
-        fecCandidateId = senator.getFecCandidateId();
-        url = senator.getUrl();
-        rssUrl = senator.getRssUrl();
-        contactForm = senator.getContactForm();
-        inOffice = senator.getInOffice();
-        dwNominate = senator.getDwNominate();
-        seniority = senator.getSeniority();
-        nextElection = senator.getNextElection();
-        totalVotes = senator.getTotalVotes();
-        missedVotes = senator.getMissedVotes();
-        totalPresent = senator.getTotalPresent();
-        lastUpdated = senator.getLastUpdated();
-        ocdId = senator.getOcdId();
-        office = senator.getOffice();
-        phone = senator.getPhone();
-        state = senator.getState();
-        senateClass = senator.getSenateClass();
-        stateRank = senator.getStateRank();
-        lisId = senator.getLisId();
-        missedVotesPct = senator.getMissedVotesPct();
-        votesWithPartyPct = senator.getVotesWithPartyPct();
-        votesAgainstPartyPct = senator.getVotesAgainstPartyPct();
-        imageUrl = BASE_URL + "/" + senator.getProPublicaId() + ".jpg";
-    }
+@Data
+@JsonInclude(value = JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ProPublicaCongress {
 
     @JsonProperty(value = "id")
-    private Long id;
-
-    @JsonProperty(value = "pro_publica_id")
-    private String proPublicaId;
+    private String id;
 
     @JsonProperty(value="title")
     private String title;
@@ -86,7 +35,7 @@ public class SenatorResponse {
     private String suffix;
 
     @JsonProperty(value="date_of_birth")
-    private LocalDate dateOfBirth;
+    private String dateOfBirth;
 
     @JsonProperty(value="gender")
     private String gender;
@@ -164,7 +113,7 @@ public class SenatorResponse {
     private Integer totalPresent;
 
     @JsonProperty(value="last_updated")
-    private LocalDateTime lastUpdated;
+    private String lastUpdated;
 
     @JsonProperty(value="ocd_id")
     private String ocdId;
@@ -180,14 +129,14 @@ public class SenatorResponse {
     @JsonProperty(value="state")
     private String state;
 
-    @JsonProperty(value="senate_class")
-    private Integer senateClass;
+    @JsonProperty(value="district")
+    private String district;
 
-    @JsonProperty(value="state_rank")
-    private String stateRank;
+    @JsonProperty(value="at_large")
+    private Boolean atLarge;
 
-    @JsonProperty(value="lis_id")
-    private String lisId;
+    @JsonProperty(value="geoid")
+    private String geoid;
 
     @JsonProperty(value="missed_votes_pct")
     private Double missedVotesPct;
@@ -197,8 +146,5 @@ public class SenatorResponse {
 
     @JsonProperty(value="votes_against_party_pct")
     private Double votesAgainstPartyPct;
-
-    @JsonProperty(value="image_url")
-    private String imageUrl;
-
+    
 }
