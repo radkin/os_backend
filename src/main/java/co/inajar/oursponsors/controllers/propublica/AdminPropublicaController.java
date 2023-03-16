@@ -1,6 +1,7 @@
 package co.inajar.oursponsors.controllers.propublica;
 
-import co.inajar.oursponsors.models.SenatorResponse;
+import co.inajar.oursponsors.models.propublica.CongressResponse;
+import co.inajar.oursponsors.models.propublica.SenatorResponse;
 import co.inajar.oursponsors.services.propublica.MembersApiManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,19 @@ public class AdminPropublicaController {
         var senatorResponses = membersApiManager.getSenatorsListResponse();
         var list = membersApiManager.mapPropublicaResponseToSenators(senatorResponses).parallelStream()
                 .map(SenatorResponse::new)
+                .collect(Collectors.toList());
+        response.addAll(list);
+        return new ResponseEntity<>(response, httpStatus);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "download_congress")
+    public ResponseEntity<List<CongressResponse>> downloadCongress() {
+        var response = new ArrayList<CongressResponse>();
+        var httpStatus = HttpStatus.OK;
+        var congressResponses = membersApiManager.getCongressListResponse();
+        var list = membersApiManager.mapPropublicaResponseToCongress(congressResponses).parallelStream()
+                .map(CongressResponse::new)
                 .collect(Collectors.toList());
         response.addAll(list);
         return new ResponseEntity<>(response, httpStatus);

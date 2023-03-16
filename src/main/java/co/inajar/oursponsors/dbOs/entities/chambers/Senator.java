@@ -1,4 +1,4 @@
-package co.inajar.oursponsors.dbOs.entities.chamber.senate;
+package co.inajar.oursponsors.dbOs.entities.chambers;
 
 import lombok.Data;
 

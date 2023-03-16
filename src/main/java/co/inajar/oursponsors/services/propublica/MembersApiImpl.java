@@ -1,8 +1,11 @@
 package co.inajar.oursponsors.services.propublica;
 
+import co.inajar.oursponsors.dbOs.entities.chambers.Congress;
+import co.inajar.oursponsors.dbOs.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.helpers.DateTimeConversion;
-import co.inajar.oursponsors.dbOs.entities.chamber.senate.Senator;
+import co.inajar.oursponsors.dbOs.entities.chambers.Senator;
 import co.inajar.oursponsors.dbOs.repos.propublica.SenatorRepo;
+import co.inajar.oursponsors.models.propublica.ProPublicaCongress;
 import co.inajar.oursponsors.models.propublica.ProPublicaSenator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
@@ -27,6 +31,9 @@ public class MembersApiImpl implements MembersApiManager {
 
     @Autowired
     private SenatorRepo senatorRepo;
+
+    @Autowired
+    private CongressRepo congressRepo;
     
     private Logger logger = LoggerFactory.getLogger(MembersApiImpl.class);
 
@@ -35,6 +42,9 @@ public class MembersApiImpl implements MembersApiManager {
 
     private List<Senator> getSenators() { return senatorRepo.findAll(); }
 
+    private List<Congress> getCongress() { return congressRepo.findAll(); }
+
+    //Senate
     @Override
     public List<ProPublicaSenator> getSenatorsListResponse() {
 //        Integer page = 1;
@@ -71,6 +81,8 @@ public class MembersApiImpl implements MembersApiManager {
 
     private WebClient getClient() {
         return WebClient.builder()
+                .exchangeStrategies(ExchangeStrategies.builder().codecs(clientCodecConfigurer -> {
+                    clientCodecConfigurer.defaultCodecs().maxInMemorySize(1000000);}).build())
                 .baseUrl("https://api.propublica.org")
                 .defaultHeader("X-API-Key", propublicaApiKey)
                 .build();
@@ -179,4 +191,141 @@ public class MembersApiImpl implements MembersApiManager {
 
     }
 
+    // Congress
+    @Override
+    public List<ProPublicaCongress> getCongressListResponse() {
+//        Integer page = 1;
+        var path = String.format("congress/v1/117/house/members.json");
+        var webClient = getClient().get()
+                .uri(uriBuilder -> uriBuilder.path(path)
+//                        .queryParam("q", page.toString())
+                        .build())
+                .retrieve()
+                .bodyToMono(String.class);
+
+        return mapCongressResponseToModel(webClient.block());
+    }
+
+
+    private List<ProPublicaCongress> mapCongressResponseToModel(String response) {
+        var mappedCongresss = new ArrayList<ProPublicaCongress>();
+        var objectMapper = new ObjectMapper();
+        try {
+            var tree = objectMapper.readTree(response);
+            var members = tree.get("results").get(0).get("members");
+            for (JsonNode jsonNode : members) {
+                try {
+                    mappedCongresss.add(objectMapper.treeToValue(jsonNode, ProPublicaCongress.class));
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return mappedCongresss;
+    }
+
+    private Congress setCongress(Congress congress, ProPublicaCongress co) {
+        congress.setProPublicaId(co.getId());
+        congress.setTitle(co.getTitle());
+        congress.setShortTitle(co.getShortTitle());
+        congress.setApiUri(co.getApiUri());
+        congress.setFirstName(co.getFirstName());
+        congress.setMiddleName(co.getMiddleName());
+        congress.setLastName(co.getLastName());
+        congress.setSuffix(co.getSuffix());
+
+        LocalDate dob = DateTimeConversion.formatStringForLocalDate(co.getDateOfBirth());
+        congress.setDateOfBirth(dob);
+
+        congress.setGender(co.getGender());
+        congress.setParty(co.getParty());
+        congress.setLeadershipRole(co.getLeadershipRole());
+        congress.setTwitterAccount(co.getTwitterAccount());
+        congress.setFacebookAccount(co.getFacebookAccount());
+        congress.setYoutubeAccount(co.getYoutubeAccount());
+        congress.setGovtrackId(co.getGovtrackId());
+        congress.setCspanId(co.getCspanId());
+        congress.setVotesmartId(co.getVotesmartId());
+        congress.setIcpsrId(co.getIcpsrId());
+        congress.setCrpId(co.getCrpId());
+        congress.setGoogleEntityId(co.getGoogleEntityId());
+        congress.setFecCandidateId(co.getFecCandidateId());
+        congress.setUrl(co.getUrl());
+        congress.setRssUrl(co.getRssUrl());
+        congress.setContactForm(co.getContactForm());
+        congress.setInOffice(co.getInOffice());
+        congress.setDwNominate(co.getDwNominate());
+        congress.setSeniority(co.getSeniority());
+        congress.setNextElection(co.getNextElection());
+        congress.setTotalVotes(co.getTotalVotes());
+        congress.setMissedVotes(co.getMissedVotes());
+        congress.setTotalPresent(co.getTotalPresent());
+
+        LocalDateTime lastUpdate = DateTimeConversion.formatStringForLocalDateTime(co.getLastUpdated());
+        congress.setLastUpdated(lastUpdate);
+
+        congress.setOcdId(co.getOcdId());
+        congress.setOffice(co.getOffice());
+        congress.setPhone(co.getPhone());
+        congress.setState(co.getState());
+        congress.setDistrict(co.getDistrict());
+        congress.setAtLarge(co.getAtLarge());
+        congress.setGeoid(co.getGeoid());
+        congress.setMissedVotesPct(co.getMissedVotesPct());
+        congress.setVotesWithPartyPct(co.getVotesWithPartyPct());
+        congress.setVotesAgainstPartyPct(co.getVotesAgainstPartyPct());
+        return congress;
+    }
+
+    private Congress createCongress(ProPublicaCongress proPublicaCongress) {
+        var newCongress = new Congress();
+        var bp = setCongress(newCongress, proPublicaCongress);
+        return congressRepo.save(bp);
+    }
+
+    private Optional<Congress> getCongressByPpId(String proPublicaId) {
+        return congressRepo.findFirstCongressByProPublicaId(proPublicaId);
+    }
+    private Congress updateCongress(ProPublicaCongress proPublicaCongress) {
+        var possibleCongress = getCongressByPpId(proPublicaCongress.getId());
+        if (possibleCongress.isPresent()) {
+            var congress = possibleCongress.get();
+            var bp = setCongress(congress, proPublicaCongress);
+            return congressRepo.save(bp);
+        } else {
+            logger.error("No Blog Post with ID {}", proPublicaCongress.getId());
+            return null;
+        }
+
+    }
+
+    public List<Congress> mapPropublicaResponseToCongress(List<ProPublicaCongress> congress) {
+        var congressPPIds = getCongress().parallelStream()
+                .map(Congress::getProPublicaId)
+                .collect(Collectors.toList());
+
+        var newCongresss = congress.stream()
+                .filter(p -> !congressPPIds.contains(p.getId()))
+                .collect(Collectors.toList());
+
+        var updatePosts = congress.stream()
+                .filter(p -> congressPPIds.contains(p.getId()))
+                .collect(Collectors.toList());
+
+        var mergedList = new ArrayList<Congress>();
+        var createList = newCongresss.parallelStream()
+                .map(s -> createCongress(s))
+                .collect(Collectors.toList());
+        var updateList = updatePosts.parallelStream()
+                .map(s -> updateCongress(s))
+                .collect(Collectors.toList());
+
+        if (!createList.isEmpty()) mergedList.addAll(createList);
+        if (!updateList.isEmpty()) mergedList.addAll(updateList);
+
+        return mergedList;
+
+    }
 }
