@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -12,5 +13,6 @@ import java.util.Optional;
 public interface SenatorRepo extends JpaRepository<Senator, Long> {
 
     Optional<Senator> findFirstSenatorByProPublicaId(String proPublicaId);
+    Optional<List<Senator>> findSenatorsByState(String state);
 }
 

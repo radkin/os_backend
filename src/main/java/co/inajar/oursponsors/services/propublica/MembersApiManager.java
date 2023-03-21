@@ -2,8 +2,8 @@ package co.inajar.oursponsors.services.propublica;
 
 import co.inajar.oursponsors.dbOs.entities.chambers.Congress;
 import co.inajar.oursponsors.dbOs.entities.chambers.Senator;
-import co.inajar.oursponsors.models.propublica.ProPublicaCongress;
-import co.inajar.oursponsors.models.propublica.ProPublicaSenator;
+import co.inajar.oursponsors.models.propublica.congress.ProPublicaCongress;
+import co.inajar.oursponsors.models.propublica.senator.ProPublicaSenator;
 
 import java.util.List;
 

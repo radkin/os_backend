@@ -1,4 +1,4 @@
-package co.inajar.oursponsors.models.propublica;
+package co.inajar.oursponsors.models.propublica.senator;
 import co.inajar.oursponsors.dbOs.entities.chambers.Senator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;

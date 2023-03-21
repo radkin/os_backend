@@ -1,14 +1,14 @@
-package co.inajar.oursponsors.models.propublica;
+package co.inajar.oursponsors.models.propublica.congress;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ProPublicaSenator {
+public class ProPublicaCongress {
 
     @JsonProperty(value = "id")
     private String id;
@@ -129,14 +129,14 @@ public class ProPublicaSenator {
     @JsonProperty(value="state")
     private String state;
 
-    @JsonProperty(value="senate_class")
-    private Integer senateClass;
+    @JsonProperty(value="district")
+    private String district;
 
-    @JsonProperty(value="state_rank")
-    private String stateRank;
+    @JsonProperty(value="at_large")
+    private Boolean atLarge;
 
-    @JsonProperty(value="lis_id")
-    private String lisId;
+    @JsonProperty(value="geoid")
+    private String geoid;
 
     @JsonProperty(value="missed_votes_pct")
     private Double missedVotesPct;

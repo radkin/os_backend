@@ -1,7 +1,7 @@
 package co.inajar.oursponsors.controllers.propublica;
 
-import co.inajar.oursponsors.models.propublica.CongressResponse;
-import co.inajar.oursponsors.models.propublica.SenatorResponse;
+import co.inajar.oursponsors.models.propublica.congress.CongressResponse;
+import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
 import co.inajar.oursponsors.services.propublica.MembersApiManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

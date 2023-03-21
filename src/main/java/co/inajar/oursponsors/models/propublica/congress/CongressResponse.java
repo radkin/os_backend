@@ -1,4 +1,4 @@
-package co.inajar.oursponsors.models.propublica;
+package co.inajar.oursponsors.models.propublica.congress;
 
 import co.inajar.oursponsors.dbOs.entities.chambers.Congress;
 import com.fasterxml.jackson.annotation.JsonProperty;
