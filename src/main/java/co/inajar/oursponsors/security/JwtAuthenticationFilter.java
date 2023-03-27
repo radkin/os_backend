@@ -5,7 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.Claim;
 
 import co.inajar.oursponsors.configuration.ApplicationConfigurationProperties;
-import co.inajar.oursponsors.services.UserManager;
+import co.inajar.oursponsors.services.user.UserManager;
 import co.inajar.oursponsors.dbOs.entities.User;
 
 

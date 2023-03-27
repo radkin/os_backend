@@ -1,7 +1,7 @@
 package co.inajar.oursponsors.security;
 
 import co.inajar.oursponsors.configuration.ApplicationConfigurationProperties;
-import co.inajar.oursponsors.services.UserManager;
+import co.inajar.oursponsors.services.user.UserManager;
 import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
