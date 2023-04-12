@@ -26,19 +26,7 @@ public class ProPublicaController {
     public ResponseEntity<List<SenatorResponse>> getSenators() {
         var response = new ArrayList<SenatorResponse>();
         var httpResponse = HttpStatus.OK;
-        var list = membersManager.getSenators().parallelStream()
-                .map(SenatorResponse::new)
-                .collect(Collectors.toList());
-        response.addAll(list);
-        return new ResponseEntity<>(response, httpResponse);
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @PostMapping(path = "get_senators_by_state")
-    public ResponseEntity<List<SenatorResponse>> getSenatorsByState(@RequestBody GetMembersByStateRequest data) {
-        var response = new ArrayList<SenatorResponse>();
-        var httpResponse = HttpStatus.OK;
-        var possibleSenators = membersManager.getSenatorsByState(data.getState());
+        var possibleSenators = membersManager.getSenators();
         if (possibleSenators.isPresent()) {
             var list = possibleSenators.get().parallelStream()
                 .map(SenatorResponse::new)
@@ -50,22 +38,10 @@ public class ProPublicaController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "get_congress")
-    public ResponseEntity<List<CongressResponse>> getCongress() {
+    public ResponseEntity<List<CongressResponse>> getCongresses() {
         var response = new ArrayList<CongressResponse>();
         var httpResponse = HttpStatus.OK;
-        var list = membersManager.getCongress().parallelStream()
-                .map(CongressResponse::new)
-                .collect(Collectors.toList());
-        response.addAll(list);
-        return new ResponseEntity<>(response, httpResponse);
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @PostMapping(path = "get_congress_by_state")
-    public ResponseEntity<List<CongressResponse>> getCongressesByState(@RequestBody GetMembersByStateRequest data) {
-        var response = new ArrayList<CongressResponse>();
-        var httpResponse = HttpStatus.OK;
-        var possibleCongress = membersManager.getCongressByState(data.getState());
+        var possibleCongress = membersManager.getCongress();
         if (possibleCongress.isPresent()) {
             var list = possibleCongress.get().parallelStream()
                     .map(CongressResponse::new)

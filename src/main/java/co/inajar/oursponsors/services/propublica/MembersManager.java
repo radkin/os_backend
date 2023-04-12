@@ -8,9 +8,7 @@ import java.util.Optional;
 
 public interface MembersManager {
 
-    List<Senator> getSenators();
-    Optional<List<Senator>> getSenatorsByState(String state);
-    List<Congress> getCongress();
-    Optional<List<Congress>> getCongressByState(String state);
+    Optional<List<Senator>> getSenators();
+    Optional<List<Congress>> getCongress();
 
 }
