@@ -29,20 +29,18 @@ public class MembersImpl implements MembersManager {
 
     public Optional<List<Senator>> getSenators() {
         var preferences = userManager.getPreferencesByUserId(1L);
-        if (preferences.getMyStateOnly()) {
-            return senatorRepo.findSenatorsByState("CA");
-        } else {
-            return Optional.of(senatorRepo.findAll());
-        }
+        if (preferences.getMyStateOnly() && !preferences.getMyPartyOnly()) return senatorRepo.findSenatorsByState("OH");
+        if (preferences.getMyPartyOnly() && !preferences.getMyStateOnly()) return senatorRepo.findSenatorsByParty("D");
+        if (preferences.getMyStateOnly() && preferences.getMyPartyOnly()) return senatorRepo.findSenatorsByStateAndParty("OH", "D");
+        return Optional.of(senatorRepo.findAll());
     }
 
     public Optional<List<Congress>> getCongress() {
         var preferences = userManager.getPreferencesByUserId(1L);
-        if (preferences.getMyStateOnly()) {
-            return congressRepo.findCongressesByState("CA");
-        } else {
-            return Optional.of(congressRepo.findAll());
-        }
+        if (preferences.getMyStateOnly() && !preferences.getMyPartyOnly()) return congressRepo.findCongressesByState("CO");
+        if (preferences.getMyPartyOnly() && !preferences.getMyStateOnly()) return congressRepo.findCongressesByParty("R");
+        if (preferences.getMyStateOnly() && preferences.getMyPartyOnly()) return congressRepo.findCongressesByStateAndParty("CO", "R");
+        return Optional.of(congressRepo.findAll());
     }
 
 }

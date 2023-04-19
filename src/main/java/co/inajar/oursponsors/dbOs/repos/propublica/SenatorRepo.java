@@ -14,5 +14,7 @@ public interface SenatorRepo extends JpaRepository<Senator, Long> {
 
     Optional<Senator> findFirstSenatorByProPublicaId(String proPublicaId);
     Optional<List<Senator>> findSenatorsByState(String state);
+    Optional<List<Senator>> findSenatorsByParty(String party);
+    Optional<List<Senator>> findSenatorsByStateAndParty(String state, String party);
 }
 
