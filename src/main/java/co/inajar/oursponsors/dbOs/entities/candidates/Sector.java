@@ -13,6 +13,9 @@ public class Sector {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name ="cid")
+    private String cid;
+
     @Column(name="sector_name")
     private String sectorName;
 

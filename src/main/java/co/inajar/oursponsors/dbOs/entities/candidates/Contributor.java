@@ -13,6 +13,9 @@ public class Contributor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name ="cid")
+    private String cid;
+
     @Column(name="org_name")
     private String orgName;
 
