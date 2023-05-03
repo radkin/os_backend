@@ -6,7 +6,7 @@ import co.inajar.oursponsors.dbOs.entities.chambers.Senator;
 import co.inajar.oursponsors.dbOs.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbOs.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbOs.repos.propublica.SenatorRepo;
-import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
+import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,21 +19,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.ArrayList;
-import java.util.Objects;
+import java.time.Year;
+import java.util.*;
 import java.util.stream.Stream;
-import java.util.List;
 import java.util.stream.Collectors;
-import java.util.Collection;
 
 @Service
 public class CandidatesApiImpl implements CandidatesApiManager {
 
     @Autowired
     private SectorRepo sectorRepo;
-
-//    @Autowired
-//    private ContributionRepo contributionRepo;
 
     @Autowired
     private SenatorRepo senatorRepo;
@@ -48,6 +43,10 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     private List<Sector> getSectors() { return sectorRepo.findAll(); }
 
+    private Optional<Sector> checkForExistingSector(String cid, Year cycle, String sectorName) {
+        return sectorRepo.findSectorByCidAndCycleAndSectorName(cid, cycle, sectorName);
+    }
+
     private List<Senator> getSenators() { return senatorRepo.findAll(); }
 
     private List<Congress> getCongress() { return congressRepo.findAll(); }
@@ -60,16 +59,16 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 .build();
     }
 
-    private List<SectorResponse> mapCandSectorResponseToModel(String response) {
-        var mappedSectors = new ArrayList<SectorResponse>();
+    private List<OpenSecretsSector> mapCandOpenSecretsSectorToModel(String response) {
+        var mappedSectors = new ArrayList<OpenSecretsSector>();
         var objectMapper = new ObjectMapper();
         try {
             var tree = objectMapper.readTree(response);
-            var candSectors = tree.get("response").get("sectors").get("sector");
-            for (JsonNode jsonNode : candSectors) {
+            var sectorsResponse = tree.get("response").get("sectors").get("sector");
+            for (JsonNode jsonNode : sectorsResponse) {
                 var sectorAttributes = jsonNode.get("@attributes");
                 try {
-                    mappedSectors.add(objectMapper.treeToValue(sectorAttributes, SectorResponse.class));
+                    mappedSectors.add(objectMapper.treeToValue(sectorAttributes, OpenSecretsSector.class));
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
@@ -80,7 +79,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return mappedSectors;
     }
 
-    private List<SectorResponse> getCandSectorResponse(String cid) {
+    private List<OpenSecretsSector> getOpenSecretsSector(String cid) {
         // ?method=candSector&cid=N00040675&cycle=2022%0A&output=json&apikey=${KEY}
         // ToDo: we will need to add the cycle dynamically
         var path = "/api/";
@@ -98,10 +97,11 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                         response -> response.bodyToMono(String.class).map(Exception::new))
                 .bodyToMono(String.class);
 
-        return mapCandSectorResponseToModel(webClient.block());
+        return mapCandOpenSecretsSectorToModel(webClient.block());
     }
     @Override
-    public List<String> getAllCandSectorsFromOpenSecrets() {
+    public List<OpenSecretsSector> getSectorsListResponse() {
+        var openSecretsSectors = new ArrayList<OpenSecretsSector>();
         // get a list of all cids in propublica table
         // Todo: This should be a one off SQL query not a pull of all Members
         var senators = getSenators();
@@ -122,36 +122,40 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 .collect(Collectors.toList());
 
         for (var cid : allCIDs) {
+            // for now we are just using two CIDs
             if (Objects.equals(cid, "N00003535") || Objects.equals(cid, "N00045974")) {
                 System.out.println("We have a match for either N00003535 Sherrod Brown");
                 System.out.println("Or N00045974 Lauren Boebert");
-                var candSectorResponse = getCandSectorResponse(cid);
-                System.out.println(candSectorResponse);
+                openSecretsSectors.addAll(getOpenSecretsSector(cid));
             }
-            System.out.println("getting open secrets sectors for CID " + cid);
         }
-
-        // run getCandSectorResponse for each cid
-        // run mapOpenSecretsResponseToSectors for each response
-        return allCIDs;
+        return openSecretsSectors;
     }
 
+    private Sector createSector(OpenSecretsSector openSecretsSector) {
+        var newSector = new Sector();
+        var ns = setSector(newSector, openSecretsSector);
+        return sectorRepo.save(ns);
+    }
 
+    private Sector setSector(Sector sector, OpenSecretsSector oss) {
+        Year cycle = Year.parse("2022");
+        sector.setCid(oss.getCid());
+        sector.setCycle(oss.getCycle());
+        sector.setSectorName(oss.getSectorName());
+        sector.setSectorId(oss.getSectorId());
+        sector.setIndivs(Integer.valueOf(oss.getIndivs()));
+        sector.setPacs(Integer.valueOf(oss.getPacs()));
+        sector.setTotal(Integer.valueOf(oss.getTotal()));
+        return sector;
+    }
 
-    // before populating our DBs we need to use the client to get it from opensecrets
-//    private List<Sector> mapOpenSecretsResponseToSectors(CandSectorResponse candSectorResponse) {
-//        var sectorCids = getSectors().parallelStream()
-//                .map(Sector::getCid)
-//                .collect(Collectors.toList());
-//
-//        // get the cid & cycle(year) and (of course) sector object from candSectorResponse
-//
-//        // mark these sectors as "NEW" if there are no existing cid/cycle(year)/sector combinations that match
-    // NOTE: cycle is datatype year for Java and INTEGER for postgreSQL
-//
-//        // mark these sectors as "UPDATE" if there is an existing cid/cycle(year)/sector combination
-//
-//
-//
-//    }
+    @Override
+    public List<Sector> mapOpenSecretsResponseToSectors(List<OpenSecretsSector> sectors) {
+        // for now every sector is a new one. We are not set up for updates. Delete all prior to refresh
+        return sectors.parallelStream()
+                .map(s -> createSector(s))
+                .collect(Collectors.toList());
+    }
+
 }

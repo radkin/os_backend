@@ -1,14 +1,14 @@
 package co.inajar.oursponsors.models.opensecrets.sector;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.time.Year;
+
 @Data
-@JsonInclude(value = JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class SectorResponse {
+
+    public SectorResponse() {}
 
     @JsonProperty(value = "sector_name")
     private String sectorName;
@@ -24,4 +24,10 @@ public class SectorResponse {
 
     @JsonProperty(value = "total")
     private Integer total;
+
+    @JsonProperty(value = "cycle")
+    private Year cycle;
+
+    @JsonProperty(value = "cid")
+    private String cid;
 }

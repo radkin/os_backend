@@ -6,8 +6,12 @@ import org.springframework.stereotype.Repository;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Year;
+import java.util.Optional;
+
 @Repository
 @Transactional(readOnly = true)
 public interface SectorRepo extends JpaRepository<Sector, Long> {
 
+    Optional<Sector> findSectorByCidAndCycleAndSectorName(String cid, Year cycle, String sectorName);
 }
