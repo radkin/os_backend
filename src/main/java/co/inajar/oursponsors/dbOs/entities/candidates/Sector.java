@@ -18,7 +18,7 @@ public class Sector {
     private String cid;
 
     @Column(name = "cycle")
-    private Year cycle;
+    private Integer cycle;
 
     @Column(name="sector_name")
     private String sectorName;

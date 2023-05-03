@@ -2,7 +2,6 @@ package co.inajar.oursponsors.controllers.opensecrets;
 
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
 import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
-import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
 import co.inajar.oursponsors.services.opensecrets.CandidatesApiManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,10 +24,10 @@ public class AdminOpensecretsController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path="download_sectors")
-    public ResponseEntity<List<SenatorResponse>> downloadSectors() {
+    public ResponseEntity<List<SectorResponse>> downloadSectors() {
         // NOTE: this will be a hack for now that accepts 1, 2, or 3 for the part of our download
         // as opensecrets.org only allows 200 downloads per day.
-        var response = new ArrayList<SenatorResponse>();
+        var response = new ArrayList<SectorResponse>();
         var httpStatus = HttpStatus.OK;
         var sectorResponses = candidatesApiManager.getSectorsListResponse();
         System.out.println(sectorResponses);
@@ -36,6 +35,7 @@ public class AdminOpensecretsController {
 //                .map(SectorResponse::new)
 //                .collect(Collectors.toList());
 //        response.addAll(list);
+        candidatesApiManager.mapOpenSecretsResponseToSectors(sectorResponses);
         return new ResponseEntity<>(response, httpStatus);
     }
 

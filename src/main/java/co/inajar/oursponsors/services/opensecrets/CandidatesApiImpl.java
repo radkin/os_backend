@@ -7,6 +7,7 @@ import co.inajar.oursponsors.dbOs.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbOs.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbOs.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
+import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -139,9 +140,8 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     }
 
     private Sector setSector(Sector sector, OpenSecretsSector oss) {
-        Year cycle = Year.parse("2022");
-        sector.setCid(oss.getCid());
-        sector.setCycle(oss.getCycle());
+        sector.setCid("bogus");
+        sector.setCycle(2022);
         sector.setSectorName(oss.getSectorName());
         sector.setSectorId(oss.getSectorId());
         sector.setIndivs(Integer.valueOf(oss.getIndivs()));
