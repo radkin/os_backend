@@ -3,13 +3,11 @@ package co.inajar.oursponsors.services.opensecrets;
 import co.inajar.oursponsors.dbOs.entities.candidates.Sector;
 import co.inajar.oursponsors.dbOs.entities.chambers.Congress;
 import co.inajar.oursponsors.dbOs.entities.chambers.Senator;
-import co.inajar.oursponsors.dbOs.repos.opensecrets.ContributionRepo;
 import co.inajar.oursponsors.dbOs.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbOs.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbOs.repos.propublica.SenatorRepo;
-import co.inajar.oursponsors.models.opensecrets.sector.CandSectorResponse;
+import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -21,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.List;
@@ -61,16 +60,16 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 .build();
     }
 
-    private CandSectorResponse mapCandSectoResponseToModel(String response) {
-        // ToDo: return List<CandSectorResponse>
-        var candSectorResponse = new CandSectorResponse();
+    private List<SectorResponse> mapCandSectorResponseToModel(String response) {
+        var mappedSectors = new ArrayList<SectorResponse>();
         var objectMapper = new ObjectMapper();
         try {
             var tree = objectMapper.readTree(response);
-            var sectors = tree.get("response");
-            for (JsonNode jsonNode : sectors) {
+            var candSectors = tree.get("response").get("sectors").get("sector");
+            for (JsonNode jsonNode : candSectors) {
+                var sectorAttributes = jsonNode.get("@attributes");
                 try {
-                    candSectorResponse = objectMapper.treeToValue(jsonNode, CandSectorResponse.class);
+                    mappedSectors.add(objectMapper.treeToValue(sectorAttributes, SectorResponse.class));
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
@@ -78,11 +77,12 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        return candSectorResponse;
+        return mappedSectors;
     }
 
-    private CandSectorResponse getCandSectorResponse(String cid) {
-        // ?method=candSector&cid=N00040675&cycle=2022%0A&output=json&apikey=5260a992dce9cec9c6d02d9b00d6c98c
+    private List<SectorResponse> getCandSectorResponse(String cid) {
+        // ?method=candSector&cid=N00040675&cycle=2022%0A&output=json&apikey=${KEY}
+        // ToDo: we will need to add the cycle dynamically
         var path = "/api/";
         var webClient = getClient().get()
                 .uri(uriBuilder -> uriBuilder.path(path)
@@ -98,7 +98,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                         response -> response.bodyToMono(String.class).map(Exception::new))
                 .bodyToMono(String.class);
 
-        return mapCandSectoResponseToModel(webClient.block());
+        return mapCandSectorResponseToModel(webClient.block());
     }
     @Override
     public List<String> getAllCandSectorsFromOpenSecrets() {
@@ -125,7 +125,8 @@ public class CandidatesApiImpl implements CandidatesApiManager {
             if (Objects.equals(cid, "N00003535") || Objects.equals(cid, "N00045974")) {
                 System.out.println("We have a match for either N00003535 Sherrod Brown");
                 System.out.println("Or N00045974 Lauren Boebert");
-                getCandSectorResponse(cid);
+                var candSectorResponse = getCandSectorResponse(cid);
+                System.out.println(candSectorResponse);
             }
             System.out.println("getting open secrets sectors for CID " + cid);
         }
