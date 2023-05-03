@@ -8,12 +8,20 @@ import co.inajar.oursponsors.dbOs.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbOs.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbOs.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.opensecrets.sector.CandSectorResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +44,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     private Logger logger = LoggerFactory.getLogger(CandidatesApiImpl.class);
 
-    @Value("${OPENSECRETS_TOKEN")
+    @Value("${opensecrets.inajar.token.secret}")
     private String opensecretsApiKey;
 
     private List<Sector> getSectors() { return sectorRepo.findAll(); }
@@ -45,6 +53,53 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     private List<Congress> getCongress() { return congressRepo.findAll(); }
 
+    private WebClient getClient() {
+        return WebClient.builder()
+                .exchangeStrategies(ExchangeStrategies.builder().codecs(clientCodecConfigurer -> {
+                    clientCodecConfigurer.defaultCodecs().maxInMemorySize(1000000);}).build())
+                .baseUrl("https://www.opensecrets.org")
+                .build();
+    }
+
+    private CandSectorResponse mapCandSectoResponseToModel(String response) {
+        // ToDo: return List<CandSectorResponse>
+        var candSectorResponse = new CandSectorResponse();
+        var objectMapper = new ObjectMapper();
+        try {
+            var tree = objectMapper.readTree(response);
+            var sectors = tree.get("response");
+            for (JsonNode jsonNode : sectors) {
+                try {
+                    candSectorResponse = objectMapper.treeToValue(jsonNode, CandSectorResponse.class);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return candSectorResponse;
+    }
+
+    private CandSectorResponse getCandSectorResponse(String cid) {
+        // ?method=candSector&cid=N00040675&cycle=2022%0A&output=json&apikey=5260a992dce9cec9c6d02d9b00d6c98c
+        var path = "/api/";
+        var webClient = getClient().get()
+                .uri(uriBuilder -> uriBuilder.path(path)
+                        .queryParam("method", "candSector")
+                        .queryParam("cid", cid)
+                        .queryParam("cycle", "2022")
+                        .queryParam("output", "json")
+                        .queryParam("apikey", opensecretsApiKey)
+                        .build())
+                .retrieve()
+                .onStatus(
+                        HttpStatus.INTERNAL_SERVER_ERROR::equals,
+                        response -> response.bodyToMono(String.class).map(Exception::new))
+                .bodyToMono(String.class);
+
+        return mapCandSectoResponseToModel(webClient.block());
+    }
     @Override
     public List<String> getAllCandSectorsFromOpenSecrets() {
         // get a list of all cids in propublica table
@@ -63,21 +118,24 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         List<String> allCIDs = Stream
                 .of(senatorCIDs, congressCIDs)
                 .flatMap(Collection::stream)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-//        for (var cid : allCIDs) {
-//            System.out.println("getting open secrets sectors for CID " + cid);
-//        }
+        for (var cid : allCIDs) {
+            if (Objects.equals(cid, "N00003535") || Objects.equals(cid, "N00045974")) {
+                System.out.println("We have a match for either N00003535 Sherrod Brown");
+                System.out.println("Or N00045974 Lauren Boebert");
+                getCandSectorResponse(cid);
+            }
+            System.out.println("getting open secrets sectors for CID " + cid);
+        }
 
         // run getCandSectorResponse for each cid
         // run mapOpenSecretsResponseToSectors for each response
         return allCIDs;
     }
 
-    // we need to run this for every CID that is listed on the propublica tables
-//    private CandSectorResponse getCandSectorResponse(cid) {
-//        var path = String.format("?method=candSector&cid=" + cid + "&cycle=2022&output=json");
-//    }
+
 
     // before populating our DBs we need to use the client to get it from opensecrets
 //    private List<Sector> mapOpenSecretsResponseToSectors(CandSectorResponse candSectorResponse) {
@@ -85,11 +143,12 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 //                .map(Sector::getCid)
 //                .collect(Collectors.toList());
 //
-//        // get the cid from candSectorResponse
+//        // get the cid & cycle(year) and (of course) sector object from candSectorResponse
 //
-//        // mark these sectors as "NEW" if there are no existing cids that match
+//        // mark these sectors as "NEW" if there are no existing cid/cycle(year)/sector combinations that match
+    // NOTE: cycle is datatype year for Java and INTEGER for postgreSQL
 //
-//        // mark these sectors as "UPDATE" if there is an existing cid match
+//        // mark these sectors as "UPDATE" if there is an existing cid/cycle(year)/sector combination
 //
 //
 //

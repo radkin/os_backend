@@ -48,6 +48,7 @@ public class MembersApiImpl implements MembersApiManager {
     @Override
     public List<ProPublicaSenator> getSenatorsListResponse() {
 //        Integer page = 1;
+        // ToDo: this is hard set for session 117 and it needs to advance to 118 in the next election cycle
         var path = String.format("congress/v1/117/senate/members.json");
         var webClient = getClient().get()
                 .uri(uriBuilder -> uriBuilder.path(path)

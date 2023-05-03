@@ -24,6 +24,10 @@ public class AdminOpensecretsController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path="download_sectors")
     public List<String> downloadSectors() {
+
+        // NOTE: this will be a hack for now that accepts 1, 2, or 3 for the part of our download
+        // as opensecrets.org only allows 200 downloads per day.
+
 //        var response = new ArrayList<SectorResponse>();
 //        var httpStatus = HttpStatus.OK;
 //        // this method contacts opensecrets org as a client
