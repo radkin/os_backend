@@ -60,7 +60,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 .build();
     }
 
-    private List<OpenSecretsSector> mapCandOpenSecretsSectorToModel(String response) {
+    private List<OpenSecretsSector> mapCandOpenSecretsSectorToModel(String response, String cid, Integer cycle) {
         var mappedSectors = new ArrayList<OpenSecretsSector>();
         var objectMapper = new ObjectMapper();
         try {
@@ -69,7 +69,10 @@ public class CandidatesApiImpl implements CandidatesApiManager {
             for (JsonNode jsonNode : sectorsResponse) {
                 var sectorAttributes = jsonNode.get("@attributes");
                 try {
-                    mappedSectors.add(objectMapper.treeToValue(sectorAttributes, OpenSecretsSector.class));
+                    var sector = objectMapper.treeToValue(sectorAttributes, OpenSecretsSector.class);
+                    sector.setCid(cid);
+                    sector.setCycle(cycle);
+                    mappedSectors.add(sector);
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
@@ -83,12 +86,13 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     private List<OpenSecretsSector> getOpenSecretsSector(String cid) {
         // ?method=candSector&cid=N00040675&cycle=2022%0A&output=json&apikey=${KEY}
         // ToDo: we will need to add the cycle dynamically
+        var cycle = 2022;
         var path = "/api/";
         var webClient = getClient().get()
                 .uri(uriBuilder -> uriBuilder.path(path)
                         .queryParam("method", "candSector")
                         .queryParam("cid", cid)
-                        .queryParam("cycle", "2022")
+                        .queryParam("cycle", String.valueOf(cycle))
                         .queryParam("output", "json")
                         .queryParam("apikey", opensecretsApiKey)
                         .build())
@@ -98,7 +102,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                         response -> response.bodyToMono(String.class).map(Exception::new))
                 .bodyToMono(String.class);
 
-        return mapCandOpenSecretsSectorToModel(webClient.block());
+        return mapCandOpenSecretsSectorToModel(webClient.block(), cid, cycle);
     }
     @Override
     public List<OpenSecretsSector> getSectorsListResponse() {
@@ -140,8 +144,8 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     }
 
     private Sector setSector(Sector sector, OpenSecretsSector oss) {
-        sector.setCid("bogus");
-        sector.setCycle(2022);
+        sector.setCid(oss.getCid());
+        sector.setCycle(oss.getCycle());
         sector.setSectorName(oss.getSectorName());
         sector.setSectorId(oss.getSectorId());
         sector.setIndivs(Integer.valueOf(oss.getIndivs()));
