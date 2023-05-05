@@ -26,7 +26,7 @@ public class AdminOpensecretsController {
     @RequestMapping(path="download_sectors/{part}", method = RequestMethod.GET)
     public ResponseEntity<List<SectorResponse>> downloadSectors(@PathVariable Integer part) {
         // NOTE: this will be a hack for now that accepts 1,2,3,4,5 for the part of our download
-        // THere are 400 + change total CIDs
+        // Teere are 400 and some change, total CIDs. Part 5 was 500 rows
         // as opensecrets.org only allows 200 downloads per day.
         var httpStatus = HttpStatus.OK;
         var sectorResponses = candidatesApiManager.getSectorsListResponse(part);

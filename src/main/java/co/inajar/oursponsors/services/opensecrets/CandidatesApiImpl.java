@@ -7,7 +7,6 @@ import co.inajar.oursponsors.dbOs.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbOs.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbOs.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
-import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Mono;
 
 import java.time.Year;
 import java.util.*;
@@ -61,7 +62,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 .build();
     }
 
-    private List<OpenSecretsSector> mapCandOpenSecretsSectorToModel(String response, String cid, Integer cycle) {
+    private List<OpenSecretsSector> mapOpenSecretsSectorToModel(String response, String cid, Integer cycle) {
         var mappedSectors = new ArrayList<OpenSecretsSector>();
         var objectMapper = new ObjectMapper();
         try {
@@ -101,9 +102,12 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 .onStatus(
                         HttpStatus.INTERNAL_SERVER_ERROR::equals,
                         response -> response.bodyToMono(String.class).map(Exception::new))
-                .bodyToMono(String.class);
-
-        return mapCandOpenSecretsSectorToModel(webClient.block(), cid, cycle);
+                .bodyToMono(String.class)
+                .onErrorResume(WebClientResponseException.class,
+                        ex -> ex.getRawStatusCode() == 404 ? Mono.empty() : Mono.error(ex));
+        var response = Optional.ofNullable(webClient.block());
+        if (response.isPresent()) { return mapOpenSecretsSectorToModel(webClient.block(), cid, cycle); }
+        return null;
     }
     @Override
     public List<OpenSecretsSector> getSectorsListResponse(Integer part) {
@@ -135,30 +139,12 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 .values()
                 .stream()
                 .toList();
-        var chunkPart = chunk.get(part);
-        System.out.println(chunkPart);
 
-        // THIS SHOULD WORK!!!
-        /*
         var chunkPart = chunk.get(part);
-
-        // ToDo: some CIDs are not in opensecrets. We need to handle 404's.
         for (var cid : chunkPart) {
             // one CID to many sectors
-            var sectors = getOpenSecretsSector(cid);
-            openSecretsSectors.addAll(sectors);
-        }
-        */
-
-        // THIS IS FOR TROUBLESHOOTING
-
-        for (var cid : chunkPart) {
-            // for now we are just using two CIDs
-            if (Objects.equals(cid, "N00003535") || Objects.equals(cid, "N00037615")) {
-                System.out.println("We have a match for either N00003535 Sherrod Brown");
-                System.out.println("Or N00037615 .. our problem child");
-                openSecretsSectors.addAll(getOpenSecretsSector(cid));
-            }
+            var possibleSectors = Optional.ofNullable(getOpenSecretsSector(cid));
+            possibleSectors.ifPresent(openSecretsSectors::addAll);
         }
 
         return openSecretsSectors;
