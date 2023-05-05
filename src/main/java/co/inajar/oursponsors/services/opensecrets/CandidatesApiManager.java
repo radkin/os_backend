@@ -9,7 +9,7 @@ import java.util.List;
 public interface CandidatesApiManager {
 
 //    List<Sector> getSectorsListResponse();
-    List<OpenSecretsSector> getSectorsListResponse();
+    List<OpenSecretsSector> getSectorsListResponse(Integer part);
 
     List<Sector> mapOpenSecretsResponseToSectors(List<OpenSecretsSector> sectors);
 }

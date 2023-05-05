@@ -22,6 +22,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Year;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
@@ -105,7 +106,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return mapCandOpenSecretsSectorToModel(webClient.block(), cid, cycle);
     }
     @Override
-    public List<OpenSecretsSector> getSectorsListResponse() {
+    public List<OpenSecretsSector> getSectorsListResponse(Integer part) {
         var openSecretsSectors = new ArrayList<OpenSecretsSector>();
         // get a list of all cids in propublica table
         // Todo: This should be a one off SQL query not a pull of all Members
@@ -126,14 +127,40 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        for (var cid : allCIDs) {
+        // break this up into chunks for REST API "job". Fine-grained control dealing with 200 request limit/day
+        final int chunkSize = 99;
+        final AtomicInteger counter = new AtomicInteger();
+        final List<List<String>> chunk = allCIDs.stream()
+                .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / chunkSize))
+                .values()
+                .stream()
+                .toList();
+        var chunkPart = chunk.get(part);
+        System.out.println(chunkPart);
+
+        // THIS SHOULD WORK!!!
+        /*
+        var chunkPart = chunk.get(part);
+
+        // ToDo: some CIDs are not in opensecrets. We need to handle 404's.
+        for (var cid : chunkPart) {
+            // one CID to many sectors
+            var sectors = getOpenSecretsSector(cid);
+            openSecretsSectors.addAll(sectors);
+        }
+        */
+
+        // THIS IS FOR TROUBLESHOOTING
+
+        for (var cid : chunkPart) {
             // for now we are just using two CIDs
-            if (Objects.equals(cid, "N00003535") || Objects.equals(cid, "N00045974")) {
+            if (Objects.equals(cid, "N00003535") || Objects.equals(cid, "N00037615")) {
                 System.out.println("We have a match for either N00003535 Sherrod Brown");
-                System.out.println("Or N00045974 Lauren Boebert");
+                System.out.println("Or N00037615 .. our problem child");
                 openSecretsSectors.addAll(getOpenSecretsSector(cid));
             }
         }
+
         return openSecretsSectors;
     }
 

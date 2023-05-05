@@ -6,8 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -22,12 +23,13 @@ public class AdminOpensecretsController {
     private CandidatesApiManager candidatesApiManager;
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(path="download_sectors")
-    public ResponseEntity<List<SectorResponse>> downloadSectors() {
-        // NOTE: this will be a hack for now that accepts 1, 2, or 3 for the part of our download
+    @RequestMapping(path="download_sectors/{part}", method = RequestMethod.GET)
+    public ResponseEntity<List<SectorResponse>> downloadSectors(@PathVariable Integer part) {
+        // NOTE: this will be a hack for now that accepts 1,2,3,4,5 for the part of our download
+        // THere are 400 + change total CIDs
         // as opensecrets.org only allows 200 downloads per day.
         var httpStatus = HttpStatus.OK;
-        var sectorResponses = candidatesApiManager.getSectorsListResponse();
+        var sectorResponses = candidatesApiManager.getSectorsListResponse(part);
         var response = candidatesApiManager.mapOpenSecretsResponseToSectors(sectorResponses).stream()
                 .map(SectorResponse::new)
                 .toList();
