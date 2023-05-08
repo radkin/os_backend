@@ -33,7 +33,8 @@ public class AdminOpensecretsController {
         var response = candidatesApiManager.mapOpenSecretsResponseToSectors(sectorResponses).stream()
                 .map(SectorResponse::new)
                 .toList();
-        candidatesApiManager.mapOpenSecretsResponseToSectors(sectorResponses);
+        // Why am I doing this? This looks redundant!
+//        candidatesApiManager.mapOpenSecretsResponseToSectors(sectorResponses);
         return new ResponseEntity<>(response, httpStatus);
     }
 

@@ -27,6 +27,7 @@ public class MembersImpl implements MembersManager {
 
     private Logger logger = LoggerFactory.getLogger(MembersApiImpl.class);
 
+    @Override
     public Optional<List<Senator>> getSenators() {
         var preferences = userManager.getPreferencesByUserId(1L);
         if (preferences.getMyStateOnly() && !preferences.getMyPartyOnly()) return senatorRepo.findSenatorsByState("OH");
@@ -34,7 +35,7 @@ public class MembersImpl implements MembersManager {
         if (preferences.getMyStateOnly() && preferences.getMyPartyOnly()) return senatorRepo.findSenatorsByStateAndParty("OH", "D");
         return Optional.of(senatorRepo.findAll());
     }
-
+    @Override
     public Optional<List<Congress>> getCongress() {
         var preferences = userManager.getPreferencesByUserId(1L);
         if (preferences.getMyStateOnly() && !preferences.getMyPartyOnly()) return congressRepo.findCongressesByState("CO");

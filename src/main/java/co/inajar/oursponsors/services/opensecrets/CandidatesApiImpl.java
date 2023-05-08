@@ -104,7 +104,8 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                         response -> response.bodyToMono(String.class).map(Exception::new))
                 .bodyToMono(String.class)
                 .onErrorResume(WebClientResponseException.class,
-                        ex -> ex.getRawStatusCode() == 404 ? Mono.empty() : Mono.error(ex));
+                        ex -> ex.getRawStatusCode() == 404 ? Mono.empty() : Mono.error(ex))
+                .retry(3);
         var response = Optional.ofNullable(webClient.block());
         if (response.isPresent()) { return mapOpenSecretsSectorToModel(webClient.block(), cid, cycle); }
         return null;
