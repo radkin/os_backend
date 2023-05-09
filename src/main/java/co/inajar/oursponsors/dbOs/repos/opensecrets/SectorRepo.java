@@ -16,5 +16,5 @@ public interface SectorRepo extends JpaRepository<Sector, Long> {
 
     Optional<Sector> findSectorByCidAndCycleAndSectorName(String cid, Year cycle, String sectorName);
     // ToDo: add cycle to this query as we're going to have records from several cycles in a year
-    Optional<List<Sector>> findSectorsByCid(String cid);
+    Optional<List<Sector>> findTop10SectorsByCidOrderByTotalDesc(String cid);
 }

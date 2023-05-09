@@ -20,7 +20,7 @@ public class CandidatesImpl implements CandidatesManager {
 
     @Override
     public Optional<List<Sector>> getSectorsByCid(String cid) {
-        return sectorRepo.findSectorsByCid(cid);
+        return sectorRepo.findTop10SectorsByCidOrderByTotalDesc(cid);
     }
 
 

@@ -38,9 +38,9 @@ public class MembersImpl implements MembersManager {
     @Override
     public Optional<List<Congress>> getCongress() {
         var preferences = userManager.getPreferencesByUserId(1L);
-        if (preferences.getMyStateOnly() && !preferences.getMyPartyOnly()) return congressRepo.findCongressesByState("CO");
+        if (preferences.getMyStateOnly() && !preferences.getMyPartyOnly()) return congressRepo.findCongressesByState("AL");
         if (preferences.getMyPartyOnly() && !preferences.getMyStateOnly()) return congressRepo.findCongressesByParty("R");
-        if (preferences.getMyStateOnly() && preferences.getMyPartyOnly()) return congressRepo.findCongressesByStateAndParty("CO", "R");
+        if (preferences.getMyStateOnly() && preferences.getMyPartyOnly()) return congressRepo.findCongressesByStateAndParty("AL", "R");
         return Optional.of(congressRepo.findAll());
     }
 
