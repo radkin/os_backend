@@ -15,11 +15,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.tcp.TcpClient;
 
 import java.time.Year;
 import java.util.*;
@@ -56,6 +60,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     private WebClient getClient() {
         return WebClient.builder()
+                .clientConnector((connector()))
                 .exchangeStrategies(ExchangeStrategies.builder().codecs(clientCodecConfigurer -> {
                     clientCodecConfigurer.defaultCodecs().maxInMemorySize(1000000);}).build())
                 .baseUrl("https://www.opensecrets.org")
@@ -83,6 +88,10 @@ public class CandidatesApiImpl implements CandidatesApiManager {
             e.printStackTrace();
         }
         return mappedSectors;
+    }
+
+    private ClientHttpConnector connector() {
+        return new ReactorClientHttpConnector(HttpClient.from(TcpClient.newConnection()));
     }
 
     private List<OpenSecretsSector> getOpenSecretsSector(String cid) {
