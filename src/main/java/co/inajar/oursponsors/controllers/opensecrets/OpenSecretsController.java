@@ -2,6 +2,7 @@ package co.inajar.oursponsors.controllers.opensecrets;
 
 import co.inajar.oursponsors.models.opensecrets.sector.SectorRequest;
 import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
+import co.inajar.oursponsors.models.opensecrets.sector.SmallSectorResponse;
 import co.inajar.oursponsors.services.opensecrets.CandidatesManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,13 +23,13 @@ public class OpenSecretsController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(path="get_sectors")
-    public ResponseEntity<List<SectorResponse>> getSectors(@RequestBody SectorRequest data) {
-        var response = new ArrayList<SectorResponse>();
+    public ResponseEntity<List<SmallSectorResponse>> getSectors(@RequestBody SectorRequest data) {
+        var response = new ArrayList<SmallSectorResponse>();
         var httpStatus = HttpStatus.OK;
         var possibleSectors = candidatesManager.getSectorsByCid(data.getCid());
         if (possibleSectors.isPresent()) {
             var list = possibleSectors.get().parallelStream()
-                .map(SectorResponse::new)
+                .map(SmallSectorResponse::new)
                 .collect(Collectors.toList());
             response.addAll(list);
         }
