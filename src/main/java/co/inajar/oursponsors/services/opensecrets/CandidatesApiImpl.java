@@ -94,7 +94,8 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return new ReactorClientHttpConnector(HttpClient.from(TcpClient.newConnection()));
     }
 
-    private List<OpenSecretsSector> getOpenSecretsSector(String cid) {
+    @Override
+    public List<OpenSecretsSector> getOpenSecretsSector(String cid) {
         // ?method=candSector&cid=N00040675&cycle=2022%0A&output=json&apikey=${KEY}
         // ToDo: we will need to add the cycle dynamically
         var cycle = 2022;
