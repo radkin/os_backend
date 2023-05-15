@@ -43,13 +43,13 @@ public class OpenSecretsController {
             System.out.println(response);
         } else {
             System.out.println("No sectors present. Running on demand");
-//            var openSecretsSectors = new ArrayList<OpenSecretsSector>();
-//            var possibleOnDemandSectors = Optional.ofNullable(candidatesApiManager.getOpenSecretsSector(data.getCid()));
-//            possibleOnDemandSectors.ifPresent(openSecretsSectors::addAll);
-//            var list = candidatesApiManager.mapOpenSecretsResponseToSectors(openSecretsSectors).stream()
-//                    .map(SmallSectorResponse::new)
-//                    .toList();
-//            response.addAll(list);
+            var openSecretsSectors = new ArrayList<OpenSecretsSector>();
+            var possibleOnDemandSectors = Optional.ofNullable(candidatesApiManager.getOpenSecretsSector(data.getCid()));
+            possibleOnDemandSectors.ifPresent(openSecretsSectors::addAll);
+            var list = candidatesApiManager.mapOpenSecretsResponseToSectors(openSecretsSectors).stream()
+                    .map(SmallSectorResponse::new)
+                    .toList();
+            response.addAll(list);
             System.out.println(response);
         }
 
