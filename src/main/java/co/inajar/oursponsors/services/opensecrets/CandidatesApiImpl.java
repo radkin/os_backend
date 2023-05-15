@@ -1,5 +1,6 @@
 package co.inajar.oursponsors.services.opensecrets;
 
+import co.inajar.oursponsors.dbOs.entities.Log;
 import co.inajar.oursponsors.dbOs.entities.candidates.Sector;
 import co.inajar.oursponsors.dbOs.entities.chambers.Congress;
 import co.inajar.oursponsors.dbOs.entities.chambers.Senator;
@@ -27,6 +28,7 @@ import reactor.netty.tcp.TcpClient;
 
 import java.time.Year;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
@@ -154,6 +156,11 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         var chunkPart = chunk.get(part);
         for (var cid : chunkPart) {
             // one CID to many sectors
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (Exception e) {
+                logger.error("unable to sleep" + e);
+            }
             var possibleSectors = Optional.ofNullable(getOpenSecretsSector(cid));
             possibleSectors.ifPresent(openSecretsSectors::addAll);
         }
