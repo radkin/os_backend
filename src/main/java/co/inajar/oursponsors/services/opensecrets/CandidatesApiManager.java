@@ -10,6 +10,6 @@ public interface CandidatesApiManager {
 
 //    List<Sector> getSectorsListResponse();
     List<OpenSecretsSector> getSectorsListResponse(Integer part);
-
     List<Sector> mapOpenSecretsResponseToSectors(List<OpenSecretsSector> sectors);
+    List<OpenSecretsSector> getOpenSecretsSector(String cid);
 }
