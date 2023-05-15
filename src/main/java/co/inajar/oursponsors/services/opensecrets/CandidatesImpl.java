@@ -1,6 +1,8 @@
 package co.inajar.oursponsors.services.opensecrets;
 
+import co.inajar.oursponsors.dbOs.entities.candidates.Contributor;
 import co.inajar.oursponsors.dbOs.entities.candidates.Sector;
+import co.inajar.oursponsors.dbOs.repos.opensecrets.ContributorRepo;
 import co.inajar.oursponsors.dbOs.repos.opensecrets.SectorRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,9 @@ public class CandidatesImpl implements CandidatesManager {
     @Autowired
     private SectorRepo sectorRepo;
 
+    @Autowired
+    private ContributorRepo contributorRepo;
+
     private Logger logger = LoggerFactory.getLogger(CandidatesImpl.class);
 
     @Override
@@ -23,5 +28,9 @@ public class CandidatesImpl implements CandidatesManager {
         return sectorRepo.findTop10SectorsByCidOrderByTotalDesc(cid);
     }
 
+    @Override
+    public Optional<List<Contributor>> getContributorsByCid(String cid) {
+        return contributorRepo.findTop10ContributorsByCidOrderByTotalDesc(cid);
+    }
 
 }
