@@ -158,7 +158,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         var path = "/api";
         var webClient = getClient().get()
                 .uri(uriBuilder -> uriBuilder.path(path)
-                        .queryParam("method", "candContributor")
+                        .queryParam("method", "candContrib")
                         .queryParam("cid", cid)
                         .queryParam("cycle", String.valueOf(cycle))
                         .queryParam("output", "json")
