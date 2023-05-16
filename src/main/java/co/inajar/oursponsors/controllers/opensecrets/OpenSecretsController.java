@@ -1,5 +1,8 @@
 package co.inajar.oursponsors.controllers.opensecrets;
 
+import co.inajar.oursponsors.models.opensecrets.contributor.ContributorRequest;
+import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
+import co.inajar.oursponsors.models.opensecrets.contributor.SmallContributorResponse;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
 import co.inajar.oursponsors.models.opensecrets.sector.SectorRequest;
 import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
@@ -33,27 +36,45 @@ public class OpenSecretsController {
         var response = new ArrayList<SmallSectorResponse>();
         var httpStatus = HttpStatus.OK;
         var possibleSectors = candidatesManager.getSectorsByCid(data.getCid());
-        System.out.println("Gathering sectors for " + data.getCid());
         if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
             var list = possibleSectors.get().parallelStream()
                 .map(SmallSectorResponse::new)
                 .collect(Collectors.toList());
             response.addAll(list);
-            System.out.println("Found existing sectors in the DB!");
-            System.out.println(response);
         } else {
-            System.out.println("No sectors present. Running on demand");
             // ToDo: remove this "on demand" gathering when we have a complete table
-//            var openSecretsSectors = new ArrayList<OpenSecretsSector>();
-//            var possibleOnDemandSectors = Optional.ofNullable(candidatesApiManager.getOpenSecretsSector(data.getCid()));
-//            possibleOnDemandSectors.ifPresent(openSecretsSectors::addAll);
-//            var list = candidatesApiManager.mapOpenSecretsResponseToSectors(openSecretsSectors).stream()
-//                    .map(SmallSectorResponse::new)
-//                    .toList();
-//            response.addAll(list);
-            System.out.println(response);
+            var openSecretsSectors = new ArrayList<OpenSecretsSector>();
+            var possibleOnDemandSectors = Optional.ofNullable(candidatesApiManager.getOpenSecretsSector(data.getCid()));
+            possibleOnDemandSectors.ifPresent(openSecretsSectors::addAll);
+            var list = candidatesApiManager.mapOpenSecretsResponseToSectors(openSecretsSectors).stream()
+                    .map(SmallSectorResponse::new)
+                    .toList();
+            response.addAll(list);
         }
+        return new ResponseEntity<>(response, httpStatus);
+    }
 
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping(path = "get_contributors")
+    public ResponseEntity<List<SmallContributorResponse>> getContributors(@RequestBody ContributorRequest data) {
+        var response = new ArrayList<SmallContributorResponse>();
+        var httpStatus = HttpStatus.OK;
+        var possibleContributors = candidatesManager.getContributorsByCid(data.getCid());
+        if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() !=0) {
+            var list = possibleContributors.get().parallelStream()
+                    .map(SmallContributorResponse::new)
+                    .collect(Collectors.toList());
+            response.addAll(list);
+        } else {
+            // ToDo: remove this "on demand" gathering when we have a complete table
+            var openSecretsContributors = new ArrayList<OpenSecretsContributor>();
+            var possibleOnDemandContributors = Optional.ofNullable(candidatesApiManager.getOpenSecretsContributor(data.getCid()));
+            possibleOnDemandContributors.ifPresent(openSecretsContributors::addAll);
+            var list = candidatesApiManager.mapOpenSecretsResponseToContributors(openSecretsContributors).stream()
+                    .map(SmallContributorResponse::new)
+                    .toList();
+            response.addAll(list);
+        }
         return new ResponseEntity<>(response, httpStatus);
     }
 

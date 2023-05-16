@@ -1,6 +1,7 @@
 package co.inajar.oursponsors.controllers.opensecrets;
 
 import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
+import co.inajar.oursponsors.models.opensecrets.contributor.ContributorResponse;
 import co.inajar.oursponsors.services.opensecrets.CandidatesApiManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,8 +34,20 @@ public class AdminOpensecretsController {
         var response = candidatesApiManager.mapOpenSecretsResponseToSectors(sectorResponses).stream()
                 .map(SectorResponse::new)
                 .toList();
-        // Why am I doing this? This looks redundant!
-//        candidatesApiManager.mapOpenSecretsResponseToSectors(sectorResponses);
+        return new ResponseEntity<>(response, httpStatus);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(path="download_contributors/{part}", method = RequestMethod.GET)
+    public ResponseEntity<List<ContributorResponse>> downloadContributors(@PathVariable Integer part) {
+        // NOTE: this will be a hack for now that accepts 1,2,3,4,5 for the part of our download
+        // There are 400 and some change, total CIDs. Part 5 was 500 rows
+        // as opensecrets.org only allows 200 downloads per day.
+        var httpStatus = HttpStatus.OK;
+        var contributorResponses = candidatesApiManager.getContributorsListResponse(part);
+        var response = candidatesApiManager.mapOpenSecretsResponseToContributors(contributorResponses).stream()
+                .map(ContributorResponse::new)
+                .toList();
         return new ResponseEntity<>(response, httpStatus);
     }
 

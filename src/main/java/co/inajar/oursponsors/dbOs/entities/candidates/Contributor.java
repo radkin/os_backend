@@ -3,7 +3,6 @@ package co.inajar.oursponsors.dbOs.entities.candidates;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.time.Year;
 
 @Entity
 @Table(name="contributors")
@@ -18,7 +17,10 @@ public class Contributor {
     private String cid;
 
     @Column(name = "cycle")
-    private Year cycle;
+    private Integer cycle;
+
+    @Column(name = "contributorid")
+    private String contributorId;
 
     @Column(name="org_name")
     private String orgName;
