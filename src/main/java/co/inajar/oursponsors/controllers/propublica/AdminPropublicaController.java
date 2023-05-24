@@ -30,7 +30,7 @@ public class AdminPropublicaController {
         var senatorResponses = membersApiManager.getSenatorsListResponse();
         var list = membersApiManager.mapPropublicaResponseToSenators(senatorResponses).parallelStream()
                 .map(SenatorResponse::new)
-                .collect(Collectors.toList());
+                .toList();
         response.addAll(list);
         return new ResponseEntity<>(response, httpStatus);
     }
@@ -43,7 +43,7 @@ public class AdminPropublicaController {
         var congressResponses = membersApiManager.getCongressListResponse();
         var list = membersApiManager.mapPropublicaResponseToCongress(congressResponses).parallelStream()
                 .map(CongressResponse::new)
-                .collect(Collectors.toList());
+                .toList();
         response.addAll(list);
         return new ResponseEntity<>(response, httpStatus);
     }

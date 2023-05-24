@@ -4,7 +4,6 @@ import co.inajar.oursponsors.dbOs.entities.candidates.Contributor;
 import co.inajar.oursponsors.dbOs.entities.candidates.Sector;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
-import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
 
 import java.util.List;
 
