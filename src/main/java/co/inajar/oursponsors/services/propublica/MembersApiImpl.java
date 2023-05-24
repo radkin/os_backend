@@ -23,7 +23,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -167,23 +166,23 @@ public class MembersApiImpl implements MembersApiManager {
     public List<Senator> mapPropublicaResponseToSenators(List<ProPublicaSenator> senators) {
         var senatorPPIds = getSenators().parallelStream()
                 .map(Senator::getProPublicaId)
-                .collect(Collectors.toList());
+                .toList();
 
         var newSenators = senators.stream()
                 .filter(p -> !senatorPPIds.contains(p.getId()))
-                .collect(Collectors.toList());
+                .toList();
 
         var updatePosts = senators.stream()
                 .filter(p -> senatorPPIds.contains(p.getId()))
-                .collect(Collectors.toList());
+                .toList();
 
         var mergedList = new ArrayList<Senator>();
         var createList = newSenators.parallelStream()
-                .map(s -> createSenator(s))
-                .collect(Collectors.toList());
+                .map(this::createSenator)
+                .toList();
         var updateList = updatePosts.parallelStream()
-                .map(s -> updateSenator(s))
-                .collect(Collectors.toList());
+                .map(this::updateSenator)
+                .toList();
 
         if (!createList.isEmpty()) mergedList.addAll(createList);
         if (!updateList.isEmpty()) mergedList.addAll(updateList);
@@ -305,23 +304,23 @@ public class MembersApiImpl implements MembersApiManager {
     public List<Congress> mapPropublicaResponseToCongress(List<ProPublicaCongress> congress) {
         var congressPPIds = getCongress().parallelStream()
                 .map(Congress::getProPublicaId)
-                .collect(Collectors.toList());
+                .toList();
 
         var newCongresss = congress.stream()
                 .filter(p -> !congressPPIds.contains(p.getId()))
-                .collect(Collectors.toList());
+                .toList();
 
         var updatePosts = congress.stream()
                 .filter(p -> congressPPIds.contains(p.getId()))
-                .collect(Collectors.toList());
+                .toList();
 
         var mergedList = new ArrayList<Congress>();
         var createList = newCongresss.parallelStream()
-                .map(s -> createCongress(s))
-                .collect(Collectors.toList());
+                .map(this::createCongress)
+                .toList();
         var updateList = updatePosts.parallelStream()
-                .map(s -> updateCongress(s))
-                .collect(Collectors.toList());
+                .map(this::updateCongress)
+                .toList();
 
         if (!createList.isEmpty()) mergedList.addAll(createList);
         if (!updateList.isEmpty()) mergedList.addAll(updateList);

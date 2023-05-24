@@ -1,7 +1,6 @@
 package co.inajar.oursponsors.controllers.propublica;
 
 import co.inajar.oursponsors.models.propublica.congress.CongressResponse;
-import co.inajar.oursponsors.models.propublica.GetMembersByStateRequest;
 import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
 import co.inajar.oursponsors.services.propublica.MembersManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/propublica")
@@ -30,7 +28,7 @@ public class ProPublicaController {
         if (possibleSenators.isPresent()) {
             var list = possibleSenators.get().parallelStream()
                 .map(SenatorResponse::new)
-                .collect(Collectors.toList());
+                .toList();
             response.addAll(list);
         }
         return new ResponseEntity<>(response, httpResponse);
@@ -45,7 +43,7 @@ public class ProPublicaController {
         if (possibleCongress.isPresent()) {
             var list = possibleCongress.get().parallelStream()
                     .map(CongressResponse::new)
-                    .collect(Collectors.toList());
+                    .toList();
             response.addAll(list);
         }
         return new ResponseEntity<>(response, httpResponse);
