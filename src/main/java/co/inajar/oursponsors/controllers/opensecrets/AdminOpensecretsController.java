@@ -7,14 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/admin/opensecrets")
@@ -24,7 +19,7 @@ public class AdminOpensecretsController {
     private CandidatesApiManager candidatesApiManager;
 
     @PreAuthorize("isAuthenticated()")
-    @RequestMapping(path="download_sectors/{part}", method = RequestMethod.GET)
+    @GetMapping(path="download_sectors/{part}")
     public ResponseEntity<List<SectorResponse>> downloadSectors(@PathVariable Integer part) {
         // NOTE: this will be a hack for now that accepts 1,2,3,4,5 for the part of our download
         // There are 400 and some change, total CIDs. Part 5 was 500 rows
@@ -38,7 +33,7 @@ public class AdminOpensecretsController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @RequestMapping(path="download_contributors/{part}", method = RequestMethod.GET)
+    @GetMapping(path="download_contributors/{part}")
     public ResponseEntity<List<ContributorResponse>> downloadContributors(@PathVariable Integer part) {
         // NOTE: this will be a hack for now that accepts 1,2,3,4,5 for the part of our download
         // There are 400 and some change, total CIDs. Part 5 was 500 rows

@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/opensecrets")
@@ -38,19 +37,20 @@ public class OpenSecretsController {
         var possibleSectors = candidatesManager.getSectorsByCid(data.getCid());
         if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
             var list = possibleSectors.get().parallelStream()
-                .map(SmallSectorResponse::new)
-                .collect(Collectors.toList());
-            response.addAll(list);
-        } else {
-            // ToDo: remove this "on demand" gathering when we have a complete table
-            var openSecretsSectors = new ArrayList<OpenSecretsSector>();
-            var possibleOnDemandSectors = Optional.ofNullable(candidatesApiManager.getOpenSecretsSector(data.getCid()));
-            possibleOnDemandSectors.ifPresent(openSecretsSectors::addAll);
-            var list = candidatesApiManager.mapOpenSecretsResponseToSectors(openSecretsSectors).stream()
                     .map(SmallSectorResponse::new)
                     .toList();
             response.addAll(list);
         }
+//        } else {
+//            // ToDo: remove this "on demand" gathering when we have a complete table
+//            var openSecretsSectors = new ArrayList<OpenSecretsSector>();
+//            var possibleOnDemandSectors = Optional.ofNullable(candidatesApiManager.getOpenSecretsSector(data.getCid()));
+//            possibleOnDemandSectors.ifPresent(openSecretsSectors::addAll);
+//            var list = candidatesApiManager.mapOpenSecretsResponseToSectors(openSecretsSectors).stream()
+//                    .map(SmallSectorResponse::new)
+//                    .toList();
+//            response.addAll(list);
+//        }
         return new ResponseEntity<>(response, httpStatus);
     }
 
@@ -63,18 +63,19 @@ public class OpenSecretsController {
         if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() !=0) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)
-                    .collect(Collectors.toList());
-            response.addAll(list);
-        } else {
-            // ToDo: remove this "on demand" gathering when we have a complete table
-            var openSecretsContributors = new ArrayList<OpenSecretsContributor>();
-            var possibleOnDemandContributors = Optional.ofNullable(candidatesApiManager.getOpenSecretsContributor(data.getCid()));
-            possibleOnDemandContributors.ifPresent(openSecretsContributors::addAll);
-            var list = candidatesApiManager.mapOpenSecretsResponseToContributors(openSecretsContributors).stream()
-                    .map(SmallContributorResponse::new)
                     .toList();
             response.addAll(list);
         }
+//        } else {
+//            // ToDo: remove this "on demand" gathering when we have a complete table
+//            var openSecretsContributors = new ArrayList<OpenSecretsContributor>();
+//            var possibleOnDemandContributors = Optional.ofNullable(candidatesApiManager.getOpenSecretsContributor(data.getCid()));
+//            possibleOnDemandContributors.ifPresent(openSecretsContributors::addAll);
+//            var list = candidatesApiManager.mapOpenSecretsResponseToContributors(openSecretsContributors).stream()
+//                    .map(SmallContributorResponse::new)
+//                    .toList();
+//            response.addAll(list);
+//        }
         return new ResponseEntity<>(response, httpStatus);
     }
 

@@ -3,7 +3,6 @@ package co.inajar.oursponsors.dbOs.entities.candidates;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.time.Year;
 
 @Entity
 @Table(name="sectors")
