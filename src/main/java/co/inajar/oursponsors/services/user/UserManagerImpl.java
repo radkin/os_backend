@@ -64,6 +64,7 @@ public class UserManagerImpl implements UserManager {
         if (request.getParty() != null) user.setParty(request.getParty());
         if (request.getEmail() != null) user.setEmail(request.getEmail());
         if (request.getGender() != null) user.setGender(request.getGender());
+        if (request.getState() != null) user.setState(request.getState());
         return userRepo.save(user);
     }
 }
