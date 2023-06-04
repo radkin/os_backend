@@ -1,49 +1,47 @@
 package co.inajar.oursponsors.dbOs.entities;
 
+import lombok.Data;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "users")
+@Data
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     @Column(name = "inajar_api_key")
     private String apiKey;
-    public String getApiKey() {
-        return apiKey;
-    }
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
-    }
 
     @Column(name = "email")
     private String email;
-    public void setEmail(String theEmail) { email = theEmail; }
-    public String getEmail() { return email; }
 
     @Column(name = "first_name")
     private String firstName;
-    public void setFirstName(String theName) { firstName = theName; }
-    public String getFirstName() { return firstName; }
 
     @Column(name = "last_name")
     private String lastName;
-    public void setLastName(String theName) { lastName = theName; }
-    public String getLastName() { return lastName; }
 
     @Column(name = "profile_img")
     private String profileImg;
-    public void setProfileImg(String imageUrl) { profileImg = imageUrl; }
-    public String getProfileImg() { return profileImg; }
+
+    @Column(name = "password")
+    private String password;
+
+    @Column(name = "state")
+    private String state;
+
+    @Column(name = "gender")
+    private String gender;
+
+    @Column(name = "party")
+    private String party;
+
+    @Column(name = "is_enabled")
+    private Boolean isEnabled;
 
     @Transient
     private String name;
