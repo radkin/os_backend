@@ -1,5 +1,6 @@
 package co.inajar.oursponsors.services.propublica;
 
+import co.inajar.oursponsors.dbOs.entities.User;
 import co.inajar.oursponsors.dbOs.entities.chambers.Congress;
 import co.inajar.oursponsors.dbOs.entities.chambers.Senator;
 import co.inajar.oursponsors.dbOs.repos.propublica.CongressRepo;
@@ -28,19 +29,19 @@ public class MembersImpl implements MembersManager {
     private Logger logger = LoggerFactory.getLogger(MembersApiImpl.class);
 
     @Override
-    public Optional<List<Senator>> getSenators() {
-        var preferences = userManager.getPreferencesByUserId(1L);
-        if (preferences.getMyStateOnly() && !preferences.getMyPartyOnly()) return senatorRepo.findSenatorsByState("OH");
-        if (preferences.getMyPartyOnly() && !preferences.getMyStateOnly()) return senatorRepo.findSenatorsByParty("D");
-        if (preferences.getMyStateOnly() && preferences.getMyPartyOnly()) return senatorRepo.findSenatorsByStateAndParty("OH", "D");
+    public Optional<List<Senator>> getSenators(User user) {
+        var preferences = userManager.getPreferencesByUserId(user.getId());
+        if (preferences.getMyStateOnly() && !preferences.getMyPartyOnly()) return senatorRepo.findSenatorsByState(user.getState());
+        if (preferences.getMyPartyOnly() && !preferences.getMyStateOnly()) return senatorRepo.findSenatorsByParty(user.getParty());
+        if (preferences.getMyStateOnly() && preferences.getMyPartyOnly()) return senatorRepo.findSenatorsByStateAndParty(user.getState(), user.getParty());
         return Optional.of(senatorRepo.findAll());
     }
     @Override
-    public Optional<List<Congress>> getCongress() {
-        var preferences = userManager.getPreferencesByUserId(1L);
-        if (preferences.getMyStateOnly() && !preferences.getMyPartyOnly()) return congressRepo.findCongressesByState("AL");
-        if (preferences.getMyPartyOnly() && !preferences.getMyStateOnly()) return congressRepo.findCongressesByParty("R");
-        if (preferences.getMyStateOnly() && preferences.getMyPartyOnly()) return congressRepo.findCongressesByStateAndParty("AL", "R");
+    public Optional<List<Congress>> getCongress(User user) {
+        var preferences = userManager.getPreferencesByUserId(user.getId());
+        if (preferences.getMyStateOnly() && !preferences.getMyPartyOnly()) return congressRepo.findCongressesByState(user.getState());
+        if (preferences.getMyPartyOnly() && !preferences.getMyStateOnly()) return congressRepo.findCongressesByParty(user.getParty());
+        if (preferences.getMyStateOnly() && preferences.getMyPartyOnly()) return congressRepo.findCongressesByStateAndParty(user.getState(), user.getParty());
         return Optional.of(congressRepo.findAll());
     }
 
