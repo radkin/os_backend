@@ -65,8 +65,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     private WebClient getClient() {
         return WebClient.builder()
                 .clientConnector((connector()))
-                .exchangeStrategies(ExchangeStrategies.builder().codecs(clientCodecConfigurer -> {
-                    clientCodecConfigurer.defaultCodecs().maxInMemorySize(1000000);}).build())
+                .exchangeStrategies(ExchangeStrategies.builder().codecs(clientCodecConfigurer -> clientCodecConfigurer.defaultCodecs().maxInMemorySize(1000000)).build())
                 .baseUrl("https://www.opensecrets.org")
                 .build();
     }
@@ -150,7 +149,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 .retry(3);
         var response = Optional.ofNullable(webClient.block());
         if (response.isPresent()) { return mapOpenSecretsSectorToModel(webClient.block(), cid, cycle); }
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
@@ -294,7 +293,7 @@ private List<List<String>> gatherCids() {
     public List<Sector> mapOpenSecretsResponseToSectors(List<OpenSecretsSector> sectors) {
         // for now every sector is a new one. We are not set up for updates. Delete all prior to refresh
         return sectors.parallelStream()
-                .map(s -> createSector(s))
+                .map(this::createSector)
                 .toList();
     }
 
@@ -302,7 +301,7 @@ private List<List<String>> gatherCids() {
     public List<Contributor> mapOpenSecretsResponseToContributors(List<OpenSecretsContributor> contributors) {
         // for now every contributor is a new one. We are not set up for updates. Delete all prior to refresh
         return contributors.parallelStream()
-                .map(c -> createContributor(c))
+                .map(this::createContributor)
                 .toList();
     }
 

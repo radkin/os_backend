@@ -48,7 +48,7 @@ public class MembersApiImpl implements MembersApiManager {
     public List<ProPublicaSenator> getSenatorsListResponse() {
 //        Integer page = 1;
         // ToDo: this is hard set for session 117 and it needs to advance to 118 in the next election cycle
-        var path = String.format("congress/v1/117/senate/members.json");
+        String path = String.format("congress/v1/117/senate/members.json");
         var webClient = getClient().get()
                 .uri(uriBuilder -> uriBuilder.path(path)
 //                        .queryParam("q", page.toString())
@@ -81,8 +81,7 @@ public class MembersApiImpl implements MembersApiManager {
 
     private WebClient getClient() {
         return WebClient.builder()
-                .exchangeStrategies(ExchangeStrategies.builder().codecs(clientCodecConfigurer -> {
-                    clientCodecConfigurer.defaultCodecs().maxInMemorySize(1000000);}).build())
+                .exchangeStrategies(ExchangeStrategies.builder().codecs(clientCodecConfigurer -> clientCodecConfigurer.defaultCodecs().maxInMemorySize(1000000)).build())
                 .baseUrl("https://api.propublica.org")
                 .defaultHeader("X-API-Key", propublicaApiKey)
                 .build();
@@ -195,7 +194,7 @@ public class MembersApiImpl implements MembersApiManager {
     @Override
     public List<ProPublicaCongress> getCongressListResponse() {
 //        Integer page = 1;
-        var path = String.format("congress/v1/117/house/members.json");
+        String path = String.format("congress/v1/117/house/members.json");
         var webClient = getClient().get()
                 .uri(uriBuilder -> uriBuilder.path(path)
 //                        .queryParam("q", page.toString())

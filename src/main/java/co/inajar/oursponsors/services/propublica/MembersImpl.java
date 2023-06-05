@@ -31,16 +31,16 @@ public class MembersImpl implements MembersManager {
     @Override
     public Optional<List<Senator>> getSenators(User user) {
         var preferences = userManager.getPreferencesByUserId(user.getId());
-        if (preferences.getMyStateOnly() && !preferences.getMyPartyOnly()) return senatorRepo.findSenatorsByState(user.getState());
-        if (preferences.getMyPartyOnly() && !preferences.getMyStateOnly()) return senatorRepo.findSenatorsByParty(user.getParty());
+        if (Boolean.TRUE.equals(preferences.getMyStateOnly()) && Boolean.TRUE.equals(!preferences.getMyPartyOnly())) return senatorRepo.findSenatorsByState(user.getState());
+        if (Boolean.TRUE.equals(preferences.getMyPartyOnly()) && Boolean.TRUE.equals(!preferences.getMyStateOnly())) return senatorRepo.findSenatorsByParty(user.getParty());
         if (preferences.getMyStateOnly() && preferences.getMyPartyOnly()) return senatorRepo.findSenatorsByStateAndParty(user.getState(), user.getParty());
         return Optional.of(senatorRepo.findAll());
     }
     @Override
     public Optional<List<Congress>> getCongress(User user) {
         var preferences = userManager.getPreferencesByUserId(user.getId());
-        if (preferences.getMyStateOnly() && !preferences.getMyPartyOnly()) return congressRepo.findCongressesByState(user.getState());
-        if (preferences.getMyPartyOnly() && !preferences.getMyStateOnly()) return congressRepo.findCongressesByParty(user.getParty());
+        if (Boolean.TRUE.equals(preferences.getMyStateOnly()) && Boolean.TRUE.equals(!preferences.getMyPartyOnly())) return congressRepo.findCongressesByState(user.getState());
+        if (Boolean.TRUE.equals(preferences.getMyPartyOnly()) && Boolean.TRUE.equals(!preferences.getMyStateOnly())) return congressRepo.findCongressesByParty(user.getParty());
         if (preferences.getMyStateOnly() && preferences.getMyPartyOnly()) return congressRepo.findCongressesByStateAndParty(user.getState(), user.getParty());
         return Optional.of(congressRepo.findAll());
     }
