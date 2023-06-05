@@ -25,20 +25,18 @@ public class UserPreferencesController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping(path = "get_preferences")
     public ResponseEntity<PreferencesResponse> getPreferences(@RequestBody PreferencesRequest data) {
-        var response = new PreferencesResponse();
         var httpResponse = HttpStatus.OK;
         var preferences = userManager.getPreferencesByUserId(data.getId());
-        response = new PreferencesResponse(preferences);
+        var response = new PreferencesResponse(preferences);
         return new ResponseEntity<>(response, httpResponse);
     }
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(path = "update_preferences")
     public ResponseEntity<PreferencesResponse> updatePreferences(@RequestBody PreferencesRequest data) {
-        var response = new PreferencesResponse();
         var httpResponse = HttpStatus.OK;
         var preferencesUpdate = userManager.updateUserPreferences(data);
-        response = new PreferencesResponse(preferencesUpdate);
+        var response = new PreferencesResponse(preferencesUpdate);
         return new ResponseEntity<>(response, httpResponse);
     }
 
