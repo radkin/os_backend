@@ -1,10 +1,10 @@
 package co.inajar.oursponsors.services.user;
 
-import co.inajar.oursponsors.dbOs.entities.User;
-import co.inajar.oursponsors.dbOs.entities.user.Preferences;
-import co.inajar.oursponsors.dbOs.repos.PreferencesRepo;
+import co.inajar.oursponsors.dbos.entities.User;
+import co.inajar.oursponsors.dbos.entities.user.Preferences;
+import co.inajar.oursponsors.dbos.repos.PreferencesRepo;
+import co.inajar.oursponsors.dbos.repos.UserRepo;
 import co.inajar.oursponsors.models.user.PreferencesRequest;
-import co.inajar.oursponsors.dbOs.repos.UserRepo;
 import co.inajar.oursponsors.models.user.UserRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,9 @@ public class UserManagerImpl implements UserManager {
     }
 
     @Override
-    public Preferences getPreferencesByUserId(Long id) { return preferencesRepo.findPreferencesByUserId(id); }
+    public Preferences getPreferencesByUserId(Long id) {
+        return preferencesRepo.findPreferencesByUserId(id);
+    }
 
     @Override
     public Preferences updateUserPreferences(PreferencesRequest request) {
@@ -46,7 +48,7 @@ public class UserManagerImpl implements UserManager {
         if (request.getYoutubehide() != null) preferences.setYoutubeHide(request.getYoutubehide());
         if (request.getGoogleEntityHide() != null) preferences.setGoogleEntityHide(request.getGoogleEntityHide());
         if (request.getCspanHide() != null) preferences.setCspanHide(request.getCspanHide());
-        if (request.getGovTrackHide() !=null) preferences.setGovTrackHide(request.getGovTrackHide());
+        if (request.getGovTrackHide() != null) preferences.setGovTrackHide(request.getGovTrackHide());
         if (request.getOpenSecretsHide() != null) preferences.setOpenSecretsHide(request.getOpenSecretsHide());
         return preferences;
     }

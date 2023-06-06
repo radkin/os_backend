@@ -1,14 +1,11 @@
 package co.inajar.oursponsors.security;
 
+import co.inajar.oursponsors.configuration.ApplicationConfigurationProperties;
+import co.inajar.oursponsors.dbos.entities.User;
+import co.inajar.oursponsors.services.user.UserManager;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.Claim;
-
-import co.inajar.oursponsors.configuration.ApplicationConfigurationProperties;
-import co.inajar.oursponsors.services.user.UserManager;
-import co.inajar.oursponsors.dbOs.entities.User;
-
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -23,11 +20,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static co.inajar.oursponsors.security.SecurityConstants.*;
+
 public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
-    private UserManager userManager;
-
     private final ApplicationConfigurationProperties configProps;
+    private UserManager userManager;
 
     public JwtAuthenticationFilter(AuthenticationManager authManager, ApplicationConfigurationProperties configProps, UserManager userManager) {
         super(authManager);
@@ -39,7 +36,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws IOException, ServletException {
         var header = req.getHeader(HEADER_STRING);
-        var inajarToken = req.getHeader(INAJAR_TOKEN) != null ? req.getHeader(INAJAR_TOKEN) : req.getParameter(TOKEN) ;
+        var inajarToken = req.getHeader(INAJAR_TOKEN) != null ? req.getHeader(INAJAR_TOKEN) : req.getParameter(TOKEN);
 
         if ((header == null || !header.startsWith(TOKEN_PREFIX)) && inajarToken == null) {
             SecurityContextHolder.clearContext();
@@ -54,10 +51,10 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
     private JwtAuthenticationToken getAuthentication(HttpServletRequest request) {
 
         var token = request.getHeader(HEADER_STRING);
-        var inajarToken = request.getHeader(INAJAR_TOKEN) != null ? request.getHeader(INAJAR_TOKEN) : request.getParameter(TOKEN) ;
-        if(inajarToken != null) {
+        var inajarToken = request.getHeader(INAJAR_TOKEN) != null ? request.getHeader(INAJAR_TOKEN) : request.getParameter(TOKEN);
+        if (inajarToken != null) {
             final Optional<User> optionalUser = userManager.getUserByApiKey(inajarToken);
-            if(optionalUser.isPresent()) {
+            if (optionalUser.isPresent()) {
                 var auth = new JwtAuthenticationToken(null);
                 auth.setDetails(optionalUser.get());
                 return auth;
@@ -76,7 +73,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
             final Claim roles = jwt.getClaim(ROLES);
             List<JwtGrantedAuthority> authorities = null;
-            if(! roles.isNull())
+            if (!roles.isNull())
                 authorities = roles.asList(String.class).stream().map((sRole) -> {
                     final var role = InAJarAccessRole.valueOf(sRole);
                     return new JwtGrantedAuthority(role);
@@ -85,12 +82,12 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
             final Claim id = jwt.getClaim(ID);
             final Claim apiKey = jwt.getClaim(INAJAR_API_KEY);
 
-            if(id.isNull() && apiKey.isNull() ) {
+            if (id.isNull() && apiKey.isNull()) {
                 System.out.println("BOTH NULL!!!!");
                 return null;
             }
             final Optional<User> optionalUser = id.isNull() ? userManager.getUserByApiKey(apiKey.asString()) : userManager.getUserById(id.asLong());
-            if(optionalUser.isPresent()) {
+            if (optionalUser.isPresent()) {
                 var auth = new JwtAuthenticationToken(authorities);
                 auth.setDetails(optionalUser.get());
                 return auth;

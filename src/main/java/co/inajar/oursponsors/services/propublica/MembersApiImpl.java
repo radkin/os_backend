@@ -1,10 +1,10 @@
 package co.inajar.oursponsors.services.propublica;
 
-import co.inajar.oursponsors.dbOs.entities.chambers.Congress;
-import co.inajar.oursponsors.dbOs.repos.propublica.CongressRepo;
+import co.inajar.oursponsors.dbos.entities.chambers.Congress;
+import co.inajar.oursponsors.dbos.entities.chambers.Senator;
+import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
+import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.helpers.DateTimeConversion;
-import co.inajar.oursponsors.dbOs.entities.chambers.Senator;
-import co.inajar.oursponsors.dbOs.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.propublica.congress.ProPublicaCongress;
 import co.inajar.oursponsors.models.propublica.senator.ProPublicaSenator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,15 +33,11 @@ public class MembersApiImpl implements MembersApiManager {
 
     @Autowired
     private CongressRepo congressRepo;
-    
+
     private Logger logger = LoggerFactory.getLogger(MembersApiImpl.class);
 
     @Value("${propublica.inajar.token.secret}")
     private String propublicaApiKey;
-
-    private List<Senator> getSenators() { return senatorRepo.findAll(); }
-
-    private List<Congress> getCongress() { return congressRepo.findAll(); }
 
     //Senate
     @Override
@@ -59,6 +55,13 @@ public class MembersApiImpl implements MembersApiManager {
         return mapSenatorResponseToModel(webClient.block());
     }
 
+    private WebClient getClient() {
+        return WebClient.builder()
+                .exchangeStrategies(ExchangeStrategies.builder().codecs(clientCodecConfigurer -> clientCodecConfigurer.defaultCodecs().maxInMemorySize(1000000)).build())
+                .baseUrl("https://api.propublica.org")
+                .defaultHeader("X-API-Key", propublicaApiKey)
+                .build();
+    }
 
     private List<ProPublicaSenator> mapSenatorResponseToModel(String response) {
         var mappedSenators = new ArrayList<ProPublicaSenator>();
@@ -79,12 +82,55 @@ public class MembersApiImpl implements MembersApiManager {
         return mappedSenators;
     }
 
-    private WebClient getClient() {
-        return WebClient.builder()
-                .exchangeStrategies(ExchangeStrategies.builder().codecs(clientCodecConfigurer -> clientCodecConfigurer.defaultCodecs().maxInMemorySize(1000000)).build())
-                .baseUrl("https://api.propublica.org")
-                .defaultHeader("X-API-Key", propublicaApiKey)
-                .build();
+    public List<Senator> mapPropublicaResponseToSenators(List<ProPublicaSenator> senators) {
+        var senatorPPIds = getSenators().parallelStream()
+                .map(Senator::getProPublicaId)
+                .toList();
+
+        var newSenators = senators.stream()
+                .filter(p -> !senatorPPIds.contains(p.getId()))
+                .toList();
+
+        var updatePosts = senators.stream()
+                .filter(p -> senatorPPIds.contains(p.getId()))
+                .toList();
+
+        var mergedList = new ArrayList<Senator>();
+        var createList = newSenators.parallelStream()
+                .map(this::createSenator)
+                .toList();
+        var updateList = updatePosts.parallelStream()
+                .map(this::updateSenator)
+                .toList();
+
+        if (!createList.isEmpty()) mergedList.addAll(createList);
+        if (!updateList.isEmpty()) mergedList.addAll(updateList);
+
+        return mergedList;
+
+    }
+
+    private List<Senator> getSenators() {
+        return senatorRepo.findAll();
+    }
+
+    private Senator createSenator(ProPublicaSenator proPublicaSenator) {
+        var newSenator = new Senator();
+        var bp = setSenator(newSenator, proPublicaSenator);
+        return senatorRepo.save(bp);
+    }
+
+    private Senator updateSenator(ProPublicaSenator proPublicaSenator) {
+        var possibleSenator = getSenatorByPpId(proPublicaSenator.getId());
+        if (possibleSenator.isPresent()) {
+            var senator = possibleSenator.get();
+            var bp = setSenator(senator, proPublicaSenator);
+            return senatorRepo.save(bp);
+        } else {
+            logger.error("No Blog Post with ID {}", proPublicaSenator.getId());
+            return null;
+        }
+
     }
 
     private Senator setSenator(Senator senator, ProPublicaSenator sr) {
@@ -140,54 +186,8 @@ public class MembersApiImpl implements MembersApiManager {
         return senator;
     }
 
-    private Senator createSenator(ProPublicaSenator proPublicaSenator) {
-        var newSenator = new Senator();
-        var bp = setSenator(newSenator, proPublicaSenator);
-        return senatorRepo.save(bp);
-    }
-
     private Optional<Senator> getSenatorByPpId(String proPublicaId) {
         return senatorRepo.findFirstSenatorByProPublicaId(proPublicaId);
-    }
-    private Senator updateSenator(ProPublicaSenator proPublicaSenator) {
-        var possibleSenator = getSenatorByPpId(proPublicaSenator.getId());
-        if (possibleSenator.isPresent()) {
-            var senator = possibleSenator.get();
-            var bp = setSenator(senator, proPublicaSenator);
-            return senatorRepo.save(bp);
-        } else {
-            logger.error("No Blog Post with ID {}", proPublicaSenator.getId());
-            return null;
-        }
-
-    }
-
-    public List<Senator> mapPropublicaResponseToSenators(List<ProPublicaSenator> senators) {
-        var senatorPPIds = getSenators().parallelStream()
-                .map(Senator::getProPublicaId)
-                .toList();
-
-        var newSenators = senators.stream()
-                .filter(p -> !senatorPPIds.contains(p.getId()))
-                .toList();
-
-        var updatePosts = senators.stream()
-                .filter(p -> senatorPPIds.contains(p.getId()))
-                .toList();
-
-        var mergedList = new ArrayList<Senator>();
-        var createList = newSenators.parallelStream()
-                .map(this::createSenator)
-                .toList();
-        var updateList = updatePosts.parallelStream()
-                .map(this::updateSenator)
-                .toList();
-
-        if (!createList.isEmpty()) mergedList.addAll(createList);
-        if (!updateList.isEmpty()) mergedList.addAll(updateList);
-
-        return mergedList;
-
     }
 
     // Congress
@@ -204,7 +204,6 @@ public class MembersApiImpl implements MembersApiManager {
 
         return mapCongressResponseToModel(webClient.block());
     }
-
 
     private List<ProPublicaCongress> mapCongressResponseToModel(String response) {
         var mappedCongresss = new ArrayList<ProPublicaCongress>();
@@ -223,6 +222,57 @@ public class MembersApiImpl implements MembersApiManager {
             e.printStackTrace();
         }
         return mappedCongresss;
+    }
+
+    public List<Congress> mapPropublicaResponseToCongress(List<ProPublicaCongress> congress) {
+        var congressPPIds = getCongress().parallelStream()
+                .map(Congress::getProPublicaId)
+                .toList();
+
+        var newCongresss = congress.stream()
+                .filter(p -> !congressPPIds.contains(p.getId()))
+                .toList();
+
+        var updatePosts = congress.stream()
+                .filter(p -> congressPPIds.contains(p.getId()))
+                .toList();
+
+        var mergedList = new ArrayList<Congress>();
+        var createList = newCongresss.parallelStream()
+                .map(this::createCongress)
+                .toList();
+        var updateList = updatePosts.parallelStream()
+                .map(this::updateCongress)
+                .toList();
+
+        if (!createList.isEmpty()) mergedList.addAll(createList);
+        if (!updateList.isEmpty()) mergedList.addAll(updateList);
+
+        return mergedList;
+
+    }
+
+    private List<Congress> getCongress() {
+        return congressRepo.findAll();
+    }
+
+    private Congress createCongress(ProPublicaCongress proPublicaCongress) {
+        var newCongress = new Congress();
+        var bp = setCongress(newCongress, proPublicaCongress);
+        return congressRepo.save(bp);
+    }
+
+    private Congress updateCongress(ProPublicaCongress proPublicaCongress) {
+        var possibleCongress = getCongressByPpId(proPublicaCongress.getId());
+        if (possibleCongress.isPresent()) {
+            var congress = possibleCongress.get();
+            var bp = setCongress(congress, proPublicaCongress);
+            return congressRepo.save(bp);
+        } else {
+            logger.error("No Blog Post with ID {}", proPublicaCongress.getId());
+            return null;
+        }
+
     }
 
     private Congress setCongress(Congress congress, ProPublicaCongress co) {
@@ -278,53 +328,7 @@ public class MembersApiImpl implements MembersApiManager {
         return congress;
     }
 
-    private Congress createCongress(ProPublicaCongress proPublicaCongress) {
-        var newCongress = new Congress();
-        var bp = setCongress(newCongress, proPublicaCongress);
-        return congressRepo.save(bp);
-    }
-
     private Optional<Congress> getCongressByPpId(String proPublicaId) {
         return congressRepo.findFirstCongressByProPublicaId(proPublicaId);
-    }
-    private Congress updateCongress(ProPublicaCongress proPublicaCongress) {
-        var possibleCongress = getCongressByPpId(proPublicaCongress.getId());
-        if (possibleCongress.isPresent()) {
-            var congress = possibleCongress.get();
-            var bp = setCongress(congress, proPublicaCongress);
-            return congressRepo.save(bp);
-        } else {
-            logger.error("No Blog Post with ID {}", proPublicaCongress.getId());
-            return null;
-        }
-
-    }
-
-    public List<Congress> mapPropublicaResponseToCongress(List<ProPublicaCongress> congress) {
-        var congressPPIds = getCongress().parallelStream()
-                .map(Congress::getProPublicaId)
-                .toList();
-
-        var newCongresss = congress.stream()
-                .filter(p -> !congressPPIds.contains(p.getId()))
-                .toList();
-
-        var updatePosts = congress.stream()
-                .filter(p -> congressPPIds.contains(p.getId()))
-                .toList();
-
-        var mergedList = new ArrayList<Congress>();
-        var createList = newCongresss.parallelStream()
-                .map(this::createCongress)
-                .toList();
-        var updateList = updatePosts.parallelStream()
-                .map(this::updateCongress)
-                .toList();
-
-        if (!createList.isEmpty()) mergedList.addAll(createList);
-        if (!updateList.isEmpty()) mergedList.addAll(updateList);
-
-        return mergedList;
-
     }
 }

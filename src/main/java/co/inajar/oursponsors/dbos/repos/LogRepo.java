@@ -1,11 +1,10 @@
-package co.inajar.oursponsors.dbOs.repos;
+package co.inajar.oursponsors.dbos.repos;
 
-import java.util.UUID;
-
+import co.inajar.oursponsors.dbos.entities.Log;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import co.inajar.oursponsors.dbOs.entities.Log;
+import java.util.UUID;
 
 @Repository
 public interface LogRepo extends JpaRepository<Log, UUID> {

@@ -1,11 +1,28 @@
 package co.inajar.oursponsors.models.opensecrets.sector;
 
-import co.inajar.oursponsors.dbOs.entities.candidates.Sector;
+import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class SectorResponse {
+
+    @JsonProperty(value = "id")
+    private Long id;
+    @JsonProperty(value = "sector_name")
+    private String sectorName;
+    @JsonProperty(value = "sectorid")
+    private String sectorId;
+    @JsonProperty(value = "indivs")
+    private Integer indivs;
+    @JsonProperty(value = "pacs")
+    private Integer pacs;
+    @JsonProperty(value = "total")
+    private Integer total;
+    @JsonProperty(value = "cycle")
+    private Integer cycle;
+    @JsonProperty(value = "cid")
+    private String cid;
 
     public SectorResponse(Sector sector) {
         id = sector.getId();
@@ -17,27 +34,4 @@ public class SectorResponse {
         cycle = sector.getCycle();
         cid = sector.getCid();
     }
-    @JsonProperty(value = "id")
-    private Long id;
-
-    @JsonProperty(value = "sector_name")
-    private String sectorName;
-
-    @JsonProperty(value = "sectorid")
-    private String sectorId;
-
-    @JsonProperty(value = "indivs")
-    private Integer indivs;
-
-    @JsonProperty(value = "pacs")
-    private Integer pacs;
-
-    @JsonProperty(value = "total")
-    private Integer total;
-
-    @JsonProperty(value = "cycle")
-    private Integer cycle;
-
-    @JsonProperty(value = "cid")
-    private String cid;
 }

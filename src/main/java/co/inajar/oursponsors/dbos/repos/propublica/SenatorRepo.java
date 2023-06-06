@@ -1,6 +1,6 @@
-package co.inajar.oursponsors.dbOs.repos.propublica;
+package co.inajar.oursponsors.dbos.repos.propublica;
 
-import co.inajar.oursponsors.dbOs.entities.chambers.Senator;
+import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,8 +13,11 @@ import java.util.Optional;
 public interface SenatorRepo extends JpaRepository<Senator, Long> {
 
     Optional<Senator> findFirstSenatorByProPublicaId(String proPublicaId);
+
     Optional<List<Senator>> findSenatorsByState(String state);
+
     Optional<List<Senator>> findSenatorsByParty(String party);
+
     Optional<List<Senator>> findSenatorsByStateAndParty(String state, String party);
 }
 

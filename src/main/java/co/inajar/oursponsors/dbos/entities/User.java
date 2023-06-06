@@ -1,4 +1,4 @@
-package co.inajar.oursponsors.dbOs.entities;
+package co.inajar.oursponsors.dbos.entities;
 
 import lombok.Data;
 
@@ -45,6 +45,7 @@ public class User {
 
     @Transient
     private String name;
+
     public String getName() {
         return firstName + " " + lastName;
     }

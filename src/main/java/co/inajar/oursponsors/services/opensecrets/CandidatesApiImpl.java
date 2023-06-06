@@ -1,13 +1,13 @@
 package co.inajar.oursponsors.services.opensecrets;
 
-import co.inajar.oursponsors.dbOs.entities.candidates.Contributor;
-import co.inajar.oursponsors.dbOs.entities.candidates.Sector;
-import co.inajar.oursponsors.dbOs.entities.chambers.Congress;
-import co.inajar.oursponsors.dbOs.entities.chambers.Senator;
-import co.inajar.oursponsors.dbOs.repos.opensecrets.ContributorRepo;
-import co.inajar.oursponsors.dbOs.repos.opensecrets.SectorRepo;
-import co.inajar.oursponsors.dbOs.repos.propublica.CongressRepo;
-import co.inajar.oursponsors.dbOs.repos.propublica.SenatorRepo;
+import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
+import co.inajar.oursponsors.dbos.entities.candidates.Sector;
+import co.inajar.oursponsors.dbos.entities.chambers.Congress;
+import co.inajar.oursponsors.dbos.entities.chambers.Senator;
+import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
+import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
+import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
+import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -31,8 +31,8 @@ import reactor.netty.tcp.TcpClient;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class CandidatesApiImpl implements CandidatesApiManager {
@@ -58,9 +58,62 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     @Value("${opensecrets.inajar.token.secret}")
     private String opensecretsApiKey;
 
-    private List<Senator> getSenators() { return senatorRepo.findAll(); }
+    @Override
+    public List<OpenSecretsSector> getSectorsListResponse(Integer part) {
+        var openSecretsSectors = new ArrayList<OpenSecretsSector>();
+        // get a list of all cids in propublica table
+        // Todo: This should be a one off SQL query not a pull of all Members
+        var chunk = gatherCids();
+        var chunkPart = chunk.get(part);
+        for (var cid : chunkPart) {
+            // one CID to many sectors
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (Exception e) {
+                logger.error(UNABLE_TO_SLEEP, e);
+            }
+            var possibleSectors = Optional.ofNullable(getOpenSecretsSector(cid));
+            possibleSectors.ifPresent(openSecretsSectors::addAll);
+        }
 
-    private List<Congress> getCongress() { return congressRepo.findAll(); }
+        return openSecretsSectors;
+    }
+
+    private List<List<String>> gatherCids() {
+        var senators = getSenators();
+        var congress = getCongress();
+
+        List<String> senatorCIDs = senators.parallelStream()
+                .map(Senator::getCrpId)
+                .toList();
+
+        List<String> congressCIDs = congress.parallelStream()
+                .map(Congress::getCrpId)
+                .toList();
+
+        List<String> allCIDs = Stream
+                .of(senatorCIDs, congressCIDs)
+                .flatMap(Collection::stream)
+                .filter(Objects::nonNull)
+                .toList();
+
+        // break this up into chunks for REST API "job". Fine-grained control dealing with 200 request limit/day
+        final int chunkSize = 99;
+        final AtomicInteger counter = new AtomicInteger();
+        return allCIDs.stream()
+                .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / chunkSize))
+                .values()
+                .stream()
+                .toList();
+    }
+
+    private List<Senator> getSenators() {
+        return senatorRepo.findAll();
+    }
+
+    private List<Congress> getCongress() {
+        return congressRepo.findAll();
+    }
 
     private WebClient getClient() {
         return WebClient.builder()
@@ -93,6 +146,68 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return mappedSectors;
     }
 
+    private ClientHttpConnector connector() {
+        return new ReactorClientHttpConnector(HttpClient.from(TcpClient.newConnection()));
+    }
+
+    @Override
+    public List<Sector> mapOpenSecretsResponseToSectors(List<OpenSecretsSector> sectors) {
+        // for now every sector is a new one. We are not set up for updates. Delete all prior to refresh
+        return sectors.parallelStream()
+                .map(this::createSector)
+                .toList();
+    }
+
+    @Override
+    public List<OpenSecretsSector> getOpenSecretsSector(String cid) {
+        // ?method=candSector&cid=N00040675&cycle=2022%0A&output=json&apikey=${KEY}
+        // ToDo: we will need to add the cycle dynamically
+        var cycle = 2022;
+        var path = "/api/";
+        var webClient = getClient().get()
+                .uri(uriBuilder -> uriBuilder.path(path)
+                        .queryParam("method", "candSector")
+                        .queryParam("cid", cid)
+                        .queryParam("cycle", String.valueOf(cycle))
+                        .queryParam("output", "json")
+                        .queryParam("apikey", opensecretsApiKey)
+                        .build())
+                .retrieve()
+                .onStatus(
+                        HttpStatus.INTERNAL_SERVER_ERROR::equals,
+                        response -> response.bodyToMono(String.class).map(Exception::new))
+                .bodyToMono(String.class)
+                .onErrorResume(WebClientResponseException.class,
+                        ex -> ex.getRawStatusCode() == 404 ? Mono.empty() : Mono.error(ex))
+                .retry(3);
+        var response = Optional.ofNullable(webClient.block());
+        if (response.isPresent()) {
+            return mapOpenSecretsSectorToModel(webClient.block(), cid, cycle);
+        }
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<OpenSecretsContributor> getContributorsListResponse(Integer part) {
+        var openSecretsContributors = new ArrayList<OpenSecretsContributor>();
+        // get a list of all cids in propublica table
+        // Todo: This should be a one off SQL query not a pull of all Members
+        var chunk = gatherCids();
+        var chunkPart = chunk.get(part);
+        for (var cid : chunkPart) {
+            // one CID to many sectors
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (Exception e) {
+                logger.error(UNABLE_TO_SLEEP, e);
+            }
+            var possibleContributors = Optional.ofNullable(getOpenSecretsContributor(cid));
+            possibleContributors.ifPresent(openSecretsContributors::addAll);
+        }
+
+        return openSecretsContributors;
+    }
+
     private List<OpenSecretsContributor> mapOpenSecretsContributorToModel(String response, String cid, Integer cycle) {
         var mappedContributors = new ArrayList<OpenSecretsContributor>();
         var objectMapper = new ObjectMapper();
@@ -121,35 +236,12 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return mappedContributors;
     }
 
-    private ClientHttpConnector connector() {
-        return new ReactorClientHttpConnector(HttpClient.from(TcpClient.newConnection()));
-    }
-
     @Override
-    public List<OpenSecretsSector> getOpenSecretsSector(String cid) {
-        // ?method=candSector&cid=N00040675&cycle=2022%0A&output=json&apikey=${KEY}
-        // ToDo: we will need to add the cycle dynamically
-        var cycle = 2022;
-        var path = "/api/";
-        var webClient = getClient().get()
-                .uri(uriBuilder -> uriBuilder.path(path)
-                        .queryParam("method", "candSector")
-                        .queryParam("cid", cid)
-                        .queryParam("cycle", String.valueOf(cycle))
-                        .queryParam("output", "json")
-                        .queryParam("apikey", opensecretsApiKey)
-                        .build())
-                .retrieve()
-                .onStatus(
-                        HttpStatus.INTERNAL_SERVER_ERROR::equals,
-                        response -> response.bodyToMono(String.class).map(Exception::new))
-                .bodyToMono(String.class)
-                .onErrorResume(WebClientResponseException.class,
-                        ex -> ex.getRawStatusCode() == 404 ? Mono.empty() : Mono.error(ex))
-                .retry(3);
-        var response = Optional.ofNullable(webClient.block());
-        if (response.isPresent()) { return mapOpenSecretsSectorToModel(webClient.block(), cid, cycle); }
-        return Collections.emptyList();
+    public List<Contributor> mapOpenSecretsResponseToContributors(List<OpenSecretsContributor> contributors) {
+        // for now every contributor is a new one. We are not set up for updates. Delete all prior to refresh
+        return contributors.parallelStream()
+                .map(this::createContributor)
+                .toList();
     }
 
     @Override
@@ -185,97 +277,10 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return contributorsList;
     }
 
-    @Override
-    public List<OpenSecretsSector> getSectorsListResponse(Integer part) {
-        var openSecretsSectors = new ArrayList<OpenSecretsSector>();
-        // get a list of all cids in propublica table
-        // Todo: This should be a one off SQL query not a pull of all Members
-        var chunk = gatherCids();
-        var chunkPart = chunk.get(part);
-        for (var cid : chunkPart) {
-            // one CID to many sectors
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (Exception e) {
-                logger.error(UNABLE_TO_SLEEP, e);
-            }
-            var possibleSectors = Optional.ofNullable(getOpenSecretsSector(cid));
-            possibleSectors.ifPresent(openSecretsSectors::addAll);
-        }
-
-        return openSecretsSectors;
-    }
-
-private List<List<String>> gatherCids() {
-    var senators = getSenators();
-    var congress = getCongress();
-
-    List<String> senatorCIDs = senators.parallelStream()
-            .map(Senator::getCrpId)
-            .toList();
-
-    List<String> congressCIDs = congress.parallelStream()
-            .map(Congress::getCrpId)
-            .toList();
-
-    List<String> allCIDs = Stream
-            .of(senatorCIDs, congressCIDs)
-            .flatMap(Collection::stream)
-            .filter(Objects::nonNull)
-            .toList();
-
-    // break this up into chunks for REST API "job". Fine-grained control dealing with 200 request limit/day
-    final int chunkSize = 99;
-    final AtomicInteger counter = new AtomicInteger();
-    return allCIDs.stream()
-            .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / chunkSize))
-            .values()
-            .stream()
-            .toList();
-    }
-
-    @Override
-    public List<OpenSecretsContributor> getContributorsListResponse(Integer part) {
-        var openSecretsContributors = new ArrayList<OpenSecretsContributor>();
-        // get a list of all cids in propublica table
-        // Todo: This should be a one off SQL query not a pull of all Members
-        var chunk = gatherCids();
-        var chunkPart = chunk.get(part);
-        for (var cid : chunkPart) {
-            // one CID to many sectors
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (Exception e) {
-                logger.error(UNABLE_TO_SLEEP, e);
-            }
-            var possibleContributors = Optional.ofNullable(getOpenSecretsContributor(cid));
-            possibleContributors.ifPresent(openSecretsContributors::addAll);
-        }
-
-        return openSecretsContributors;
-    }
-
-    private Sector createSector(OpenSecretsSector openSecretsSector) {
-        var newSector = new Sector();
-        var ns = setSector(newSector, openSecretsSector);
-        return sectorRepo.save(ns);
-    }
-
     private Contributor createContributor(OpenSecretsContributor openSecretsContributor) {
         var newContributor = new Contributor();
         var nc = setContributor(newContributor, openSecretsContributor);
         return contributorRepo.save(nc);
-    }
-
-    private Sector setSector(Sector sector, OpenSecretsSector oss) {
-        sector.setCid(oss.getCid());
-        sector.setCycle(oss.getCycle());
-        sector.setSectorName(oss.getSectorName());
-        sector.setSectorId(oss.getSectorId());
-        sector.setIndivs(Integer.valueOf(oss.getIndivs()));
-        sector.setPacs(Integer.valueOf(oss.getPacs()));
-        sector.setTotal(Integer.valueOf(oss.getTotal()));
-        return sector;
     }
 
     private Contributor setContributor(Contributor contributor, OpenSecretsContributor osc) {
@@ -289,20 +294,21 @@ private List<List<String>> gatherCids() {
         return contributor;
     }
 
-    @Override
-    public List<Sector> mapOpenSecretsResponseToSectors(List<OpenSecretsSector> sectors) {
-        // for now every sector is a new one. We are not set up for updates. Delete all prior to refresh
-        return sectors.parallelStream()
-                .map(this::createSector)
-                .toList();
+    private Sector createSector(OpenSecretsSector openSecretsSector) {
+        var newSector = new Sector();
+        var ns = setSector(newSector, openSecretsSector);
+        return sectorRepo.save(ns);
     }
 
-    @Override
-    public List<Contributor> mapOpenSecretsResponseToContributors(List<OpenSecretsContributor> contributors) {
-        // for now every contributor is a new one. We are not set up for updates. Delete all prior to refresh
-        return contributors.parallelStream()
-                .map(this::createContributor)
-                .toList();
+    private Sector setSector(Sector sector, OpenSecretsSector oss) {
+        sector.setCid(oss.getCid());
+        sector.setCycle(oss.getCycle());
+        sector.setSectorName(oss.getSectorName());
+        sector.setSectorId(oss.getSectorId());
+        sector.setIndivs(Integer.valueOf(oss.getIndivs()));
+        sector.setPacs(Integer.valueOf(oss.getPacs()));
+        sector.setTotal(Integer.valueOf(oss.getTotal()));
+        return sector;
     }
 
 }

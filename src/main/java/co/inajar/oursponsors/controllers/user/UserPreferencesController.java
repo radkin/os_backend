@@ -1,6 +1,6 @@
 package co.inajar.oursponsors.controllers.user;
 
-import co.inajar.oursponsors.dbOs.entities.User;
+import co.inajar.oursponsors.dbos.entities.User;
 import co.inajar.oursponsors.models.user.PreferencesRequest;
 import co.inajar.oursponsors.models.user.PreferencesResponse;
 import co.inajar.oursponsors.models.user.UserRequest;
@@ -41,7 +41,7 @@ public class UserPreferencesController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(path="get_user")
+    @GetMapping(path = "get_user")
     public ResponseEntity<UserResponse> getUser(@RequestHeader Map<String, String> headers) {
         var response = new UserResponse();
         var httpResponse = HttpStatus.OK;
