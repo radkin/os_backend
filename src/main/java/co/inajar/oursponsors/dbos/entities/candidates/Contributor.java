@@ -1,11 +1,11 @@
-package co.inajar.oursponsors.dbOs.entities.candidates;
+package co.inajar.oursponsors.dbos.entities.candidates;
 
 import lombok.Data;
 
 import javax.persistence.*;
 
 @Entity
-@Table(name="contributors")
+@Table(name = "contributors")
 @Data
 public class Contributor {
 
@@ -13,7 +13,7 @@ public class Contributor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name ="cid")
+    @Column(name = "cid")
     private String cid;
 
     @Column(name = "cycle")
@@ -22,15 +22,15 @@ public class Contributor {
     @Column(name = "contributorid")
     private String contributorId;
 
-    @Column(name="org_name")
+    @Column(name = "org_name")
     private String orgName;
 
-    @Column(name="total")
+    @Column(name = "total")
     private Integer total;
 
-    @Column(name="pacs")
+    @Column(name = "pacs")
     private Integer pacs;
 
-    @Column(name="indivs")
+    @Column(name = "indivs")
     private Integer indivs;
 }

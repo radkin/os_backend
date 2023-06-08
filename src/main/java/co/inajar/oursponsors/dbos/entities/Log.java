@@ -1,11 +1,9 @@
-package co.inajar.oursponsors.dbOs.entities;
-
-import java.util.UUID;
+package co.inajar.oursponsors.dbos.entities;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-
+import java.util.UUID;
 
 
 @Entity

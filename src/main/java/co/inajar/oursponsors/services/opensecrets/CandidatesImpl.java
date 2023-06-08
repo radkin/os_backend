@@ -1,9 +1,9 @@
 package co.inajar.oursponsors.services.opensecrets;
 
-import co.inajar.oursponsors.dbOs.entities.candidates.Contributor;
-import co.inajar.oursponsors.dbOs.entities.candidates.Sector;
-import co.inajar.oursponsors.dbOs.repos.opensecrets.ContributorRepo;
-import co.inajar.oursponsors.dbOs.repos.opensecrets.SectorRepo;
+import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
+import co.inajar.oursponsors.dbos.entities.candidates.Sector;
+import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
+import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

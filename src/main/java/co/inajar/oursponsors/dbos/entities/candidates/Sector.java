@@ -1,11 +1,11 @@
-package co.inajar.oursponsors.dbOs.entities.candidates;
+package co.inajar.oursponsors.dbos.entities.candidates;
 
 import lombok.Data;
 
 import javax.persistence.*;
 
 @Entity
-@Table(name="sectors")
+@Table(name = "sectors")
 @Data
 public class Sector {
 
@@ -13,24 +13,24 @@ public class Sector {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name ="cid")
+    @Column(name = "cid")
     private String cid;
 
     @Column(name = "cycle")
     private Integer cycle;
 
-    @Column(name="sector_name")
+    @Column(name = "sector_name")
     private String sectorName;
 
-    @Column(name="sectorid")
+    @Column(name = "sectorid")
     private String sectorId;
 
-    @Column(name="indivs")
+    @Column(name = "indivs")
     private Integer indivs;
 
-    @Column(name="pacs")
+    @Column(name = "pacs")
     private Integer pacs;
 
-    @Column(name="total")
+    @Column(name = "total")
     private Integer total;
 }

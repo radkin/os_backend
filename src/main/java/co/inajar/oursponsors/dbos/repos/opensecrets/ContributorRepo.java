@@ -1,10 +1,10 @@
-package co.inajar.oursponsors.dbOs.repos.opensecrets;
+package co.inajar.oursponsors.dbos.repos.opensecrets;
 
-import co.inajar.oursponsors.dbOs.entities.candidates.Contributor;
+import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 

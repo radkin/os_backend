@@ -1,6 +1,6 @@
-package co.inajar.oursponsors.dbOs.repos;
+package co.inajar.oursponsors.dbos.repos;
 
-import co.inajar.oursponsors.dbOs.entities.user.Preferences;
+import co.inajar.oursponsors.dbos.entities.user.Preferences;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
