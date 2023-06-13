@@ -15,5 +15,5 @@ public interface UserRepo extends JpaRepository<User, Long> {
 
     List<User> findAllByIdIn(List<Long> ids);
 
-    Optional<User> findUserByEmail(String email);
+    Optional<User> findUserByGoogleUid(String googleUid);
 }

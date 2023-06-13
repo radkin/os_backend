@@ -4,6 +4,8 @@ import co.inajar.oursponsors.models.propublica.congress.CongressResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
 import co.inajar.oursponsors.services.propublica.MembersManager;
 import co.inajar.oursponsors.services.user.UserManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +23,9 @@ import java.util.Map;
 @RequestMapping(path = "/propublica")
 public class ProPublicaController {
 
-    private static final String INAJAR_TOKEN = "inajar-token";
+    private static final String UNABLE_TO_FIND_USER = "Unable to find User with Google UID {}";
+    private static final String GOOGLE_UID = "google-uid";
+    private Logger logger = LoggerFactory.getLogger(ProPublicaController.class);
 
     @Autowired
     private UserManager userManager;
@@ -35,7 +39,7 @@ public class ProPublicaController {
         var response = new ArrayList<SenatorResponse>();
         var httpResponse = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByApiKey(headers.get(INAJAR_TOKEN));
+        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
             var possibleSenators = membersManager.getSenators(user);
@@ -45,9 +49,9 @@ public class ProPublicaController {
                         .toList();
                 response.addAll(list);
             }
+        } else {
+            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
         }
-
-
         return new ResponseEntity<>(response, httpResponse);
     }
 
@@ -57,7 +61,7 @@ public class ProPublicaController {
         var response = new ArrayList<CongressResponse>();
         var httpResponse = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByApiKey(headers.get(INAJAR_TOKEN));
+        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
             var possibleCongress = membersManager.getCongress(user);
@@ -67,6 +71,8 @@ public class ProPublicaController {
                         .toList();
                 response.addAll(list);
             }
+        } else {
+            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
         }
         return new ResponseEntity<>(response, httpResponse);
     }

@@ -14,7 +14,11 @@ public interface UserManager {
 
     Preferences getPreferencesByUserId(Long id);
 
-    Preferences updateUserPreferences(PreferencesRequest data);
+    Preferences updateUserPreferences(PreferencesRequest data, Long id);
 
-    User updateUser(UserRequest data, User user);
+    User createOrUpdateUser(UserRequest data, User user);
+
+    Optional<User> getUserByGoogleUid(String googleUid);
+
+    void createUserPreferences(User user);
 }

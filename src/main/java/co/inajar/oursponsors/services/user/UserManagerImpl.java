@@ -38,8 +38,8 @@ public class UserManagerImpl implements UserManager {
     }
 
     @Override
-    public Preferences updateUserPreferences(PreferencesRequest request) {
-        var preferences = getPreferencesByUserId(request.getUserId());
+    public Preferences updateUserPreferences(PreferencesRequest request, Long id) {
+        var preferences = getPreferencesByUserId(id);
 
         if (request.getMyStateOnly() != null) preferences.setMyStateOnly(request.getMyStateOnly());
         if (request.getMyPartyOnly() != null) preferences.setMyPartyOnly(request.getMyPartyOnly());
@@ -53,6 +53,26 @@ public class UserManagerImpl implements UserManager {
         return preferences;
     }
 
+    @Override
+    public User createOrUpdateUser(UserRequest request, User user) {
+        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
+        if (request.getLastName() != null) user.setLastName(request.getLastName());
+        if (request.getParty() != null) user.setParty(request.getParty());
+        if (request.getEmail() != null & user.getEmail() == null) user.setEmail(request.getEmail());
+        if (request.getGender() != null) user.setGender(request.getGender());
+        if (request.getState() != null) user.setState(request.getState());
+        if (request.getIsEnabled() != null) user.setIsEnabled(request.getIsEnabled());
+        if (request.getGoogleUid() != null) user.setGoogleUid(request.getGoogleUid());
+        if (request.getIsLoggedIn() != null) user.setIsLoggedIn(request.getIsLoggedIn());
+        if (request.getName() != null) user.setName(request.getName());
+        return userRepo.save(user);
+    }
+
+    @Override
+    public Optional<User> getUserByGoogleUid(String googleUid) {
+        return userRepo.findUserByGoogleUid(googleUid);
+    }
+
     // ToDo: createUser, updateUser with password encode and decode
         /*
         BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder();
@@ -60,13 +80,12 @@ public class UserManagerImpl implements UserManager {
         */
 
     @Override
-    public User updateUser(UserRequest request, User user) {
-        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
-        if (request.getLastName() != null) user.setLastName(request.getLastName());
-        if (request.getParty() != null) user.setParty(request.getParty());
-        if (request.getEmail() != null) user.setEmail(request.getEmail());
-        if (request.getGender() != null) user.setGender(request.getGender());
-        if (request.getState() != null) user.setState(request.getState());
-        return userRepo.save(user);
+    public void createUserPreferences(User user) {
+        Preferences preferences = new Preferences();
+        preferences.setUser(user);
+        // default preferences
+        preferences.setMyPartyOnly(false);
+        preferences.setMyStateOnly(false);
+        preferencesRepo.save(preferences);
     }
 }
