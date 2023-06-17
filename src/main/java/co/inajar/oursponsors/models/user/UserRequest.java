@@ -29,4 +29,16 @@ public class UserRequest {
 
     @JsonAlias(value = "party")
     private String party;
+
+    @JsonAlias(value = "is_enabled")
+    private Boolean isEnabled;
+
+    @JsonAlias(value = "is_logged_in")
+    private Boolean isLoggedIn;
+
+    @JsonAlias(value = "name")
+    private String name;
+
+    @JsonAlias(value = "google_uid")
+    private String googleUid;
 }

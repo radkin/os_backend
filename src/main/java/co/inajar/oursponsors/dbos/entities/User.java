@@ -43,6 +43,12 @@ public class User {
     @Column(name = "is_enabled")
     private Boolean isEnabled;
 
+    @Column(name = "is_logged_in")
+    private Boolean isLoggedIn;
+
+    @Column(name = "google_uid")
+    private String googleUid;
+
     @Transient
     private String name;
 
