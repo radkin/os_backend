@@ -8,11 +8,16 @@ import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
+import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +33,7 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpClient;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -275,6 +281,26 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         }
 
         return contributorsList;
+    }
+
+    @Override
+    public List<CampaignResponse> getCampaignListResponse(String crpid) {
+        System.out.println("running jsoup");
+
+        try {
+            Document doc = Jsoup.connect("https://www.opensecrets.org/2020-presidential-race/candidate?id=N00044206").get();
+            Elements elements = doc.select("#main > div.Main-wrap.l-padding.u-mt4.u-mb4 > div > div > div.l-primary > div");
+            for (Element headline : elements) {
+                System.out.println("%s\n\t%s" +
+                        headline.attr("title") + headline.absUrl("href"));
+            }
+            System.out.println(elements);
+        } catch (Error | IOException e) {
+            logger.error("Oops" + e);
+        }
+
+
+        return new ArrayList<CampaignResponse>();
     }
 
     private Contributor createContributor(OpenSecretsContributor openSecretsContributor) {
