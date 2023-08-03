@@ -285,22 +285,45 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     @Override
     public List<CampaignResponse> getCampaignListResponse(String crpid) {
-        System.out.println("running jsoup");
 
         try {
+            Elements links = new Elements();
             Document doc = Jsoup.connect("https://www.opensecrets.org/2020-presidential-race/candidate?id=N00044206").get();
-            Elements elements = doc.select("#main > div.Main-wrap.l-padding.u-mt4.u-mb4 > div > div > div.l-primary > div");
-            for (Element headline : elements) {
-                System.out.println("%s\n\t%s" +
-                        headline.attr("title") + headline.absUrl("href"));
+            Elements content = doc.select("#main > div.Main-wrap.l-padding.u-mt4.u-mb4 > div > div > div.l-primary > div");
+            Elements elements = content.first().getElementsByClass("DataTable");
+            for (Element el : elements) {
+                links = el.getElementsByTag("a");
             }
-            System.out.println(elements);
+//            System.out.println(links);
+            for (Element hrefel : links) {
+                System.out.println(hrefel);
+                Element link = hrefel.select("a").first();
+                String href = link.attr("href");
+
+                String cmte = extractCmteFromHref(href);
+                System.out.println("cmte: " + cmte);
+            }
         } catch (Error | IOException e) {
             logger.error("Oops" + e);
         }
 
 
         return new ArrayList<CampaignResponse>();
+    }
+
+    private static String extractCmteFromHref(String href) {
+        String[] parts = href.split("\\?"); // Split by "?"
+        if (parts.length > 1) {
+            String query = parts[1];
+            String[] params = query.split("&"); // Split by "&"
+            for (String param : params) {
+                String[] keyValue = param.split("=");
+                if (keyValue.length == 2 && "cmte".equals(keyValue[0]) || "strID".equals(keyValue[0])) {
+                    return keyValue[1];
+                }
+            }
+        }
+        return null; // Return null if "cmte" not found
     }
 
     private Contributor createContributor(OpenSecretsContributor openSecretsContributor) {
