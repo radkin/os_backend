@@ -285,7 +285,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     @Override
     public List<CampaignResponse> getCampaignListResponse(String crpid) {
-
+        var cmtes = new ArrayList<String>();
         try {
             Elements links = new Elements();
             Document doc = Jsoup.connect("https://www.opensecrets.org/2020-presidential-race/candidate?id=N00044206").get();
@@ -294,19 +294,16 @@ public class CandidatesApiImpl implements CandidatesApiManager {
             for (Element el : elements) {
                 links = el.getElementsByTag("a");
             }
-//            System.out.println(links);
             for (Element hrefel : links) {
-                System.out.println(hrefel);
                 Element link = hrefel.select("a").first();
                 String href = link.attr("href");
 
-                String cmte = extractCmteFromHref(href);
-                System.out.println("cmte: " + cmte);
+                cmtes.add(extractCmteFromHref(href));
             }
         } catch (Error | IOException e) {
             logger.error("Oops" + e);
         }
-
+        System.out.println(cmtes);
 
         return new ArrayList<CampaignResponse>();
     }
