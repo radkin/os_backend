@@ -25,6 +25,6 @@ public class Donation {
     private Sponsor sponsor;
 
     // could be Senator or Congress member
-    @Column(name = "chamber_member_id")
-    private Long chamberMemberId;
+    @Column(name = "pp_id")
+    private String pp_id;
 }
