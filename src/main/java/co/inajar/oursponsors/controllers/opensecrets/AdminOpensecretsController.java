@@ -1,5 +1,6 @@
 package co.inajar.oursponsors.controllers.opensecrets;
 
+import co.inajar.oursponsors.models.fec.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
 import co.inajar.oursponsors.models.opensecrets.contributor.ContributorResponse;
 import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
@@ -50,9 +51,9 @@ public class AdminOpensecretsController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(path = "download_campaign")
-    public ResponseEntity<List<CampaignResponse>> downloadCampaign(@RequestBody String crpid) {
+    public ResponseEntity<List<CampaignResponse>> downloadCampaign(@RequestBody CommitteeRequest data) {
         var httpStatus = HttpStatus.OK;
-        var campaignResponses = candidatesApiManager.getCampaignListResponse(crpid);
+        var campaignResponses = candidatesApiManager.getCampaignListResponse(data);
 //        var response = candidatesApiManager.mapHtmlParserResponseToCampaign(campaignResponses).stream()
 //                .map(CampaignResponse::new)
 //                .toList();

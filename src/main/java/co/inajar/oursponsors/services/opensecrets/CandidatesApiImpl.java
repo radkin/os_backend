@@ -1,13 +1,16 @@
 package co.inajar.oursponsors.services.opensecrets;
 
+import co.inajar.oursponsors.dbos.entities.Committee;
 import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
 import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
+import co.inajar.oursponsors.dbos.repos.CommitteeRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
+import co.inajar.oursponsors.models.fec.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
@@ -58,6 +61,9 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     @Autowired
     private CongressRepo congressRepo;
+
+    @Autowired
+    private CommitteeRepo committeeRepo;
 
     private Logger logger = LoggerFactory.getLogger(CandidatesApiImpl.class);
 
@@ -284,11 +290,13 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     }
 
     @Override
-    public List<CampaignResponse> getCampaignListResponse(String crpid) {
+    public List<CampaignResponse> getCampaignListResponse(CommitteeRequest data) {
         var cmtes = new ArrayList<String>();
         try {
             Elements links = new Elements();
-            Document doc = Jsoup.connect("https://www.opensecrets.org/2020-presidential-race/candidate?id=N00044206").get();
+            String url = "https://www.opensecrets.org/" + data.getTwoYearTransactionPeriod()
+                    + "-presidential-race/candidate?id=" + data.getCrpId();
+            Document doc = Jsoup.connect(url).get();
             Elements content = doc.select("#main > div.Main-wrap.l-padding.u-mt4.u-mb4 > div > div > div.l-primary > div");
             Elements elements = content.first().getElementsByClass("DataTable");
             for (Element el : elements) {
@@ -303,9 +311,30 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         } catch (Error | IOException e) {
             logger.error("Oops" + e);
         }
-        System.out.println(cmtes);
+        // populate committee entries for each of the results
+//        System.out.println(cmtes);
+
+        // first make sure there is not an existing entry
+        // 1. find committees by ppId (limit should be 3 entries).
+        // 2. check if the two year transaction period is the same.
+        // if Yes, it's a duplicate. If not, add a new row.
+
+        /* SKIPPING THE ABOVE CHECKS FOR NOW */
+        List<Committee> committees = cmtes.parallelStream()
+                .map(cmte -> createCommittee(data, cmte))
+                .collect(Collectors.toList());
+
+        System.out.println(committees);
+
+        // for each committee get a list of donors and filter to $50k or $100K ?
+        
 
         return new ArrayList<CampaignResponse>();
+    }
+
+    @Override
+    public List<Committee> getCommittees() {
+        return committeeRepo.findAll();
     }
 
     private static String extractCmteFromHref(String href) {
@@ -321,6 +350,14 @@ public class CandidatesApiImpl implements CandidatesApiManager {
             }
         }
         return null; // Return null if "cmte" not found
+    }
+
+    private Committee createCommittee(CommitteeRequest data, String cmte) {
+        var committee = new Committee();
+        committee.setPpId(data.getPpId());
+        committee.setTwoYearTransactionPeriod(data.getTwoYearTransactionPeriod());
+        committee.setFecCommitteeId(cmte);
+        return committeeRepo.save(committee);
     }
 
     private Contributor createContributor(OpenSecretsContributor openSecretsContributor) {
