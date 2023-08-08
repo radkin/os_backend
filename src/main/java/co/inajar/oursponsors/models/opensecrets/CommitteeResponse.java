@@ -1,4 +1,4 @@
-package co.inajar.oursponsors.models.fec;
+package co.inajar.oursponsors.models.opensecrets;
 
 import co.inajar.oursponsors.dbos.entities.Committee;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -1,4 +1,4 @@
-package co.inajar.oursponsors.models.fec;
+package co.inajar.oursponsors.models.opensecrets;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Data;

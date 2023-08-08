@@ -10,10 +10,12 @@ import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
-import co.inajar.oursponsors.models.fec.CommitteeRequest;
+import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
 import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
+import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
+import co.inajar.oursponsors.services.fec.CommitteesApiManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,6 +66,9 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     @Autowired
     private CommitteeRepo committeeRepo;
+
+    @Autowired
+    private CommitteesApiManager committeesApiManager;
 
     private Logger logger = LoggerFactory.getLogger(CandidatesApiImpl.class);
 
@@ -327,7 +332,16 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         System.out.println(committees);
 
         // for each committee get a list of donors and filter to $50k or $100K ?
-        
+
+        // cmte -> List of donors HashMap
+        var cmteFecDonors = new HashMap<String, List<FecCommitteeDonor>>();
+        for (var cmte : cmtes) {
+            List<FecCommitteeDonor> donors =
+                    committeesApiManager.getFecCommitteeDonors(cmte, data.getTwoYearTransactionPeriod());
+            cmteFecDonors.put(cmte, donors);
+        }
+
+        System.out.println(cmteFecDonors);
 
         return new ArrayList<CampaignResponse>();
     }

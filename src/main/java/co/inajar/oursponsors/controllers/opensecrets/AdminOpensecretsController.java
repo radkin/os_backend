@@ -1,7 +1,7 @@
 package co.inajar.oursponsors.controllers.opensecrets;
 
-import co.inajar.oursponsors.models.fec.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
+import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.contributor.ContributorResponse;
 import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
 import co.inajar.oursponsors.services.opensecrets.CandidatesApiManager;
@@ -49,6 +49,7 @@ public class AdminOpensecretsController {
         return new ResponseEntity<>(response, httpStatus);
     }
 
+    /* NOTE: this is really both OpenSecrets and FEC */
     @PreAuthorize("isAuthenticated()")
     @PostMapping(path = "download_campaign")
     public ResponseEntity<List<CampaignResponse>> downloadCampaign(@RequestBody CommitteeRequest data) {

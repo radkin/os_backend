@@ -1,6 +1,6 @@
 package co.inajar.oursponsors.controllers.opensecrets;
 
-import co.inajar.oursponsors.models.fec.CommitteeResponse;
+import co.inajar.oursponsors.models.opensecrets.CommitteeResponse;
 import co.inajar.oursponsors.models.opensecrets.contributor.ContributorRequest;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.contributor.SmallContributorResponse;
