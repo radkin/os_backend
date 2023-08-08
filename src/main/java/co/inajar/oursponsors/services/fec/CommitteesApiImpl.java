@@ -80,7 +80,7 @@ public class CommitteesApiImpl implements CommitteesApiManager {
             for (JsonNode jsonNode : donorsResponse) {
                 try {
                     var donor = objectMapper.treeToValue(jsonNode, FecCommitteeDonor.class);
-                    System.out.println(donor);
+                    mappedDonors.add(donor);
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
@@ -89,7 +89,7 @@ public class CommitteesApiImpl implements CommitteesApiManager {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return Collections.emptyList();
+        return mappedDonors;
     }
 
     private ClientHttpConnector connector() {

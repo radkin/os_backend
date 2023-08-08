@@ -13,6 +13,9 @@ public class FecCommitteeDonor {
     @JsonProperty(value = "contribution_receipt_date")
     private String contributionReceiptDate;
 
+    @JsonProperty(value = "contribution_receipt_amount")
+    private String contributionReceiptAmount;
+
     @JsonProperty(value = "contributor_aggregate_ytd")
     private String contributorAggregateYtd;
 
@@ -27,6 +30,9 @@ public class FecCommitteeDonor {
 
     @JsonProperty(value = "contributor_last_name")
     private String contributorLastName;
+
+    @JsonProperty(value = "contributor_middle_name")
+    private String contributorMiddleName;
 
     @JsonProperty(value = "contributor_name")
     private String contributorName;

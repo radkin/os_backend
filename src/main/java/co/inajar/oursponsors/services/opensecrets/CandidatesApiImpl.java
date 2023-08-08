@@ -1,11 +1,15 @@
 package co.inajar.oursponsors.services.opensecrets;
 
 import co.inajar.oursponsors.dbos.entities.Committee;
+import co.inajar.oursponsors.dbos.entities.Donation;
+import co.inajar.oursponsors.dbos.entities.Sponsor;
 import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
 import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.dbos.repos.CommitteeRepo;
+import co.inajar.oursponsors.dbos.repos.fec.DonationRepo;
+import co.inajar.oursponsors.dbos.repos.fec.SponsorsRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
@@ -39,6 +43,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpClient;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -66,6 +71,12 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     @Autowired
     private CommitteeRepo committeeRepo;
+
+    @Autowired
+    private SponsorsRepo sponsorsRepo;
+
+    @Autowired
+    private DonationRepo donationRepo;
 
     @Autowired
     private CommitteesApiManager committeesApiManager;
@@ -334,6 +345,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         // for each committee get a list of donors and filter to $50k or $100K ?
 
         // cmte -> List of donors HashMap
+        // NOTE: when mapped to our model donor = sponsor
         var cmteFecDonors = new HashMap<String, List<FecCommitteeDonor>>();
         for (var cmte : cmtes) {
             List<FecCommitteeDonor> donors =
@@ -342,6 +354,31 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         }
 
         System.out.println(cmteFecDonors);
+
+        // use cmteFecDonors to populate sponsor and donation table
+        List<Sponsor> newSponsors = new ArrayList<Sponsor>();
+        cmteFecDonors.forEach((cmte, donorList) -> {
+            System.out.println(cmte);
+            System.out.println("------------------------------------");
+            donorList.forEach(d -> {
+                var sponsor = new Sponsor();
+                // we are using the name, but it could be a problem.
+                var possibleExistingSponsor = getSponsorByName(d.getContributorName());
+                if (!possibleExistingSponsor.isPresent()) {
+                    sponsor = mapFecDonorToSponsor(d);
+                } else {
+                    sponsor = possibleExistingSponsor.get();
+                }
+
+                // create a donation. ToDo: check for dupes
+                mapFecDonorToDonation(d, sponsor, data.getPpId());
+
+                // Do something for the campaign response.
+
+
+//                System.out.println("Name:" + d.getContributorName() + "yearToDate:" + d.getContributorAggregateYtd());
+            });
+        });
 
         return new ArrayList<CampaignResponse>();
     }
@@ -372,6 +409,38 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         committee.setTwoYearTransactionPeriod(data.getTwoYearTransactionPeriod());
         committee.setFecCommitteeId(cmte);
         return committeeRepo.save(committee);
+    }
+
+    private Optional<Sponsor> getSponsorByName(String name) {
+        return Optional.ofNullable(sponsorsRepo.findByContributorName(name));
+    }
+
+    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor) {
+        var newSponsor = new Sponsor();
+        newSponsor.setContributionReceiptAmount(donor.getContributionReceiptAmount());
+        newSponsor.setContributionReceiptDate(donor.getContributionReceiptDate());
+        newSponsor.setContributorAggregateYtd(donor.getContributorAggregateYtd());
+        newSponsor.setContributorCity(donor.getContributorCity());
+        newSponsor.setContributorEmployer(donor.getContributorEmployer());
+        newSponsor.setContributorFirstName(donor.getContributorFirstName());
+        newSponsor.setContributorLastName(donor.getContributorLastName());
+        newSponsor.setContributorMiddleName(donor.getContributorMiddleName());
+        newSponsor.setContributorName(donor.getContributorName());
+        newSponsor.setContributorOccupation(donor.getContributorOccupation());
+        newSponsor.setContributorState(donor.getContributorState());
+        newSponsor.setContributorStreet1(donor.getContributorStreet1());
+        newSponsor.setContributorStreet2(donor.getContributorStreet2());
+        newSponsor.setContributorZip(donor.getContributorZip());
+        return sponsorsRepo.save(newSponsor);
+    }
+
+    private Donation mapFecDonorToDonation(FecCommitteeDonor donor, Sponsor sponsor, String ppId) {
+        var newDonation = new Donation();
+        newDonation.setDateOfDonation(LocalDate.parse(donor.getContributionReceiptDate()));
+        newDonation.setAmount((int) Math.round(Double.valueOf(donor.getContributionReceiptAmount())));
+        newDonation.setSponsor(sponsor);
+        newDonation.setPpId(ppId);
+        return donationRepo.save(newDonation);
     }
 
     private Contributor createContributor(OpenSecretsContributor openSecretsContributor) {
