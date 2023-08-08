@@ -1,5 +1,6 @@
 package co.inajar.oursponsors.controllers.opensecrets;
 
+import co.inajar.oursponsors.models.opensecrets.CommitteeResponse;
 import co.inajar.oursponsors.models.opensecrets.contributor.ContributorRequest;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.contributor.SmallContributorResponse;
@@ -29,7 +30,7 @@ public class OpenSecretsController {
     private CandidatesApiManager candidatesApiManager;
 
     @PreAuthorize("isAuthenticated()")
-    @PostMapping(path="get_sectors")
+    @PostMapping(path = "get_sectors")
     public ResponseEntity<List<SmallSectorResponse>> getSectors(@RequestBody SectorRequest data) {
         var response = new ArrayList<SmallSectorResponse>();
         var httpStatus = HttpStatus.OK;
@@ -58,7 +59,7 @@ public class OpenSecretsController {
         var response = new ArrayList<SmallContributorResponse>();
         var httpStatus = HttpStatus.OK;
         var possibleContributors = candidatesManager.getContributorsByCid(data.getCid());
-        if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() !=0) {
+        if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() != 0) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)
                     .toList();
@@ -73,6 +74,19 @@ public class OpenSecretsController {
                     .toList();
             response.addAll(list);
         }
+        return new ResponseEntity<>(response, httpStatus);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "get_committees")
+    public ResponseEntity<List<CommitteeResponse>> getCommittees() {
+        var response = new ArrayList<CommitteeResponse>();
+        var httpStatus = HttpStatus.OK;
+        var committees = candidatesApiManager.getCommittees();
+        var list = committees.parallelStream()
+                .map(CommitteeResponse::new)
+                .toList();
+        response.addAll(list);
         return new ResponseEntity<>(response, httpStatus);
     }
 

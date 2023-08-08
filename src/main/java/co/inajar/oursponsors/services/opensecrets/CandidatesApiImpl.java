@@ -1,18 +1,32 @@
 package co.inajar.oursponsors.services.opensecrets;
 
+import co.inajar.oursponsors.dbos.entities.Committee;
+import co.inajar.oursponsors.dbos.entities.Donation;
+import co.inajar.oursponsors.dbos.entities.Sponsor;
 import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
 import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
+import co.inajar.oursponsors.dbos.repos.CommitteeRepo;
+import co.inajar.oursponsors.dbos.repos.fec.DonationRepo;
+import co.inajar.oursponsors.dbos.repos.fec.SponsorsRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
+import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
+import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
+import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
+import co.inajar.oursponsors.services.fec.CommitteesApiManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +42,8 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpClient;
 
+import java.io.IOException;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,6 +68,18 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     @Autowired
     private CongressRepo congressRepo;
+
+    @Autowired
+    private CommitteeRepo committeeRepo;
+
+    @Autowired
+    private SponsorsRepo sponsorsRepo;
+
+    @Autowired
+    private DonationRepo donationRepo;
+
+    @Autowired
+    private CommitteesApiManager committeesApiManager;
 
     private Logger logger = LoggerFactory.getLogger(CandidatesApiImpl.class);
 
@@ -275,6 +303,144 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         }
 
         return contributorsList;
+    }
+
+    @Override
+    public List<CampaignResponse> getCampaignListResponse(CommitteeRequest data) {
+        var cmtes = new ArrayList<String>();
+        try {
+            Elements links = new Elements();
+            String url = "https://www.opensecrets.org/" + data.getTwoYearTransactionPeriod()
+                    + "-presidential-race/candidate?id=" + data.getCrpId();
+            Document doc = Jsoup.connect(url).get();
+            Elements content = doc.select("#main > div.Main-wrap.l-padding.u-mt4.u-mb4 > div > div > div.l-primary > div");
+            Elements elements = content.first().getElementsByClass("DataTable");
+            for (Element el : elements) {
+                links = el.getElementsByTag("a");
+            }
+            for (Element hrefel : links) {
+                Element link = hrefel.select("a").first();
+                String href = link.attr("href");
+
+                cmtes.add(extractCmteFromHref(href));
+            }
+        } catch (Error | IOException e) {
+            logger.error("Oops" + e);
+        }
+        // populate committee entries for each of the results
+//        System.out.println(cmtes);
+
+        // first make sure there is not an existing entry
+        // 1. find committees by ppId (limit should be 3 entries).
+        // 2. check if the two year transaction period is the same.
+        // if Yes, it's a duplicate. If not, add a new row.
+
+        /* SKIPPING THE ABOVE CHECKS FOR NOW */
+        List<Committee> committees = cmtes.parallelStream()
+                .map(cmte -> createCommittee(data, cmte))
+                .collect(Collectors.toList());
+
+        System.out.println(committees);
+
+        // for each committee get a list of donors and filter to $50k or $100K ?
+
+        // cmte -> List of donors HashMap
+        // NOTE: when mapped to our model donor = sponsor
+        var cmteFecDonors = new HashMap<String, List<FecCommitteeDonor>>();
+        for (var cmte : cmtes) {
+            List<FecCommitteeDonor> donors =
+                    committeesApiManager.getFecCommitteeDonors(cmte, data.getTwoYearTransactionPeriod());
+            cmteFecDonors.put(cmte, donors);
+        }
+
+        System.out.println(cmteFecDonors);
+
+        // use cmteFecDonors to populate sponsor and donation table
+        List<Sponsor> newSponsors = new ArrayList<Sponsor>();
+        cmteFecDonors.forEach((cmte, donorList) -> {
+            System.out.println(cmte);
+            System.out.println("------------------------------------");
+            donorList.forEach(d -> {
+                var sponsor = new Sponsor();
+                // we are using the name, but it could be a problem.
+                var possibleExistingSponsor = getSponsorByName(d.getContributorName());
+                if (!possibleExistingSponsor.isPresent()) {
+                    sponsor = mapFecDonorToSponsor(d);
+                } else {
+                    sponsor = possibleExistingSponsor.get();
+                }
+
+                // create a donation. ToDo: check for dupes
+                mapFecDonorToDonation(d, sponsor, data.getPpId());
+
+                // Do something for the campaign response.
+
+
+//                System.out.println("Name:" + d.getContributorName() + "yearToDate:" + d.getContributorAggregateYtd());
+            });
+        });
+
+        return new ArrayList<CampaignResponse>();
+    }
+
+    @Override
+    public List<Committee> getCommittees() {
+        return committeeRepo.findAll();
+    }
+
+    private static String extractCmteFromHref(String href) {
+        String[] parts = href.split("\\?"); // Split by "?"
+        if (parts.length > 1) {
+            String query = parts[1];
+            String[] params = query.split("&"); // Split by "&"
+            for (String param : params) {
+                String[] keyValue = param.split("=");
+                if (keyValue.length == 2 && "cmte".equals(keyValue[0]) || "strID".equals(keyValue[0])) {
+                    return keyValue[1];
+                }
+            }
+        }
+        return null; // Return null if "cmte" not found
+    }
+
+    private Committee createCommittee(CommitteeRequest data, String cmte) {
+        var committee = new Committee();
+        committee.setPpId(data.getPpId());
+        committee.setTwoYearTransactionPeriod(data.getTwoYearTransactionPeriod());
+        committee.setFecCommitteeId(cmte);
+        return committeeRepo.save(committee);
+    }
+
+    private Optional<Sponsor> getSponsorByName(String name) {
+        return Optional.ofNullable(sponsorsRepo.findByContributorName(name));
+    }
+
+    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor) {
+        var newSponsor = new Sponsor();
+        newSponsor.setContributionReceiptAmount(donor.getContributionReceiptAmount());
+        newSponsor.setContributionReceiptDate(donor.getContributionReceiptDate());
+        newSponsor.setContributorAggregateYtd(donor.getContributorAggregateYtd());
+        newSponsor.setContributorCity(donor.getContributorCity());
+        newSponsor.setContributorEmployer(donor.getContributorEmployer());
+        newSponsor.setContributorFirstName(donor.getContributorFirstName());
+        newSponsor.setContributorLastName(donor.getContributorLastName());
+        newSponsor.setContributorMiddleName(donor.getContributorMiddleName());
+        newSponsor.setContributorName(donor.getContributorName());
+        newSponsor.setContributorOccupation(donor.getContributorOccupation());
+        newSponsor.setContributorState(donor.getContributorState());
+        newSponsor.setContributorStreet1(donor.getContributorStreet1());
+        newSponsor.setContributorStreet2(donor.getContributorStreet2());
+        newSponsor.setContributorZip(donor.getContributorZip());
+        return sponsorsRepo.save(newSponsor);
+    }
+
+    private Donation mapFecDonorToDonation(FecCommitteeDonor donor, Sponsor sponsor, String ppId) {
+        var newDonation = new Donation();
+        newDonation.setDateOfDonation(LocalDate.parse(donor.getContributionReceiptDate()));
+        newDonation.setAmount((int) Math.round(Double.valueOf(donor.getContributionReceiptAmount())));
+        newDonation.setSponsor(sponsor);
+        newDonation.setPpId(ppId);
+        return donationRepo.save(newDonation);
     }
 
     private Contributor createContributor(OpenSecretsContributor openSecretsContributor) {
