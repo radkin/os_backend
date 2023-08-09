@@ -1,11 +1,11 @@
-package co.inajar.oursponsors.dbos.entities;
+package co.inajar.oursponsors.dbos.entities.campaigns;
 
 import lombok.Data;
 
 import javax.persistence.*;
 
 @Entity
-@Table(name = "committee")
+@Table(name = "committees")
 @Data
 public class Committee {
 

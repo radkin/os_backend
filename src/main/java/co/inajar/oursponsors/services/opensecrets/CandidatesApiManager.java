@@ -1,6 +1,6 @@
 package co.inajar.oursponsors.services.opensecrets;
 
-import co.inajar.oursponsors.dbos.entities.Committee;
+import co.inajar.oursponsors.dbos.entities.campaigns.Committee;
 import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
 import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import co.inajar.oursponsors.models.opensecrets.CampaignResponse;

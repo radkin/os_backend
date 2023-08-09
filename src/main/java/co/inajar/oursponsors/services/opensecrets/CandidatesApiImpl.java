@@ -1,8 +1,8 @@
 package co.inajar.oursponsors.services.opensecrets;
 
-import co.inajar.oursponsors.dbos.entities.Committee;
-import co.inajar.oursponsors.dbos.entities.Donation;
-import co.inajar.oursponsors.dbos.entities.Sponsor;
+import co.inajar.oursponsors.dbos.entities.campaigns.Committee;
+import co.inajar.oursponsors.dbos.entities.campaigns.Donation;
+import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
 import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
 import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;

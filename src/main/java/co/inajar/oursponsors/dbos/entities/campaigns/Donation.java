@@ -1,4 +1,4 @@
-package co.inajar.oursponsors.dbos.entities;
+package co.inajar.oursponsors.dbos.entities.campaigns;
 
 import lombok.Data;
 
