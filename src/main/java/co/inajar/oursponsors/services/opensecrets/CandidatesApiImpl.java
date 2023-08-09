@@ -14,9 +14,12 @@ import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
+import co.inajar.oursponsors.models.fec.DonationResponse;
 import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
+import co.inajar.oursponsors.models.fec.SponsorResponse;
 import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
 import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
+import co.inajar.oursponsors.models.opensecrets.CommitteeResponse;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
 import co.inajar.oursponsors.services.fec.CommitteesApiManager;
@@ -306,7 +309,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     }
 
     @Override
-    public List<CampaignResponse> getCampaignListResponse(CommitteeRequest data) {
+    public CampaignResponse getCampaignListResponse(CommitteeRequest data) {
         var cmtes = new ArrayList<String>();
         try {
             Elements links = new Elements();
@@ -357,6 +360,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
         // use cmteFecDonors to populate sponsor and donation table
         List<Sponsor> newSponsors = new ArrayList<Sponsor>();
+        List<Donation> donations = new ArrayList<Donation>();
         cmteFecDonors.forEach((cmte, donorList) -> {
             System.out.println(cmte);
             System.out.println("------------------------------------");
@@ -371,7 +375,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 }
 
                 // create a donation. ToDo: check for dupes
-                mapFecDonorToDonation(d, sponsor, data.getPpId());
+                donations.add(mapFecDonorToDonation(d, sponsor, data.getPpId()));
 
                 // Do something for the campaign response.
 
@@ -380,7 +384,24 @@ public class CandidatesApiImpl implements CandidatesApiManager {
             });
         });
 
-        return new ArrayList<CampaignResponse>();
+        var committeeResponses = committees.parallelStream()
+                .map(CommitteeResponse::new)
+                .collect(Collectors.toList());
+
+        var sponsorResponses = newSponsors.parallelStream()
+                .map(SponsorResponse::new)
+                .collect(Collectors.toList());
+
+        var donationResponses = donations.parallelStream()
+                .map(DonationResponse::new)
+                .collect(Collectors.toList());
+
+        var campaignResponse = new CampaignResponse();
+        campaignResponse.setCommittees(committeeResponses);
+        campaignResponse.setSponsors(sponsorResponses);
+        campaignResponse.setDonations(donationResponses);
+
+        return campaignResponse;
     }
 
     @Override

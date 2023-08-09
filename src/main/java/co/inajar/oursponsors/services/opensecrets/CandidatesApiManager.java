@@ -26,7 +26,7 @@ public interface CandidatesApiManager {
 
     List<OpenSecretsContributor> getOpenSecretsContributor(String cid);
 
-    List<CampaignResponse> getCampaignListResponse(CommitteeRequest data);
+    CampaignResponse getCampaignListResponse(CommitteeRequest data);
 
     List<Committee> getCommittees();
 }
