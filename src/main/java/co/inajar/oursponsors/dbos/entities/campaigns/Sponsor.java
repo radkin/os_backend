@@ -57,9 +57,9 @@ public class Sponsor {
     @Column(name = "contributor_zip")
     private String contributorZip;
 
-    @OneToMany(mappedBy = "sponsor")
+    @OneToMany(cascade = CascadeType.ALL,
+            mappedBy = "sponsor", orphanRemoval = true)
     private Set<Donation> donations = new HashSet<>();
-
 
     // ToDo: add a relationship to our donations table
 

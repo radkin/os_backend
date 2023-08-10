@@ -27,4 +27,5 @@ public class Donation {
     // could be Senator or Congress member
     @Column(name = "pp_id")
     private String ppId;
+
 }

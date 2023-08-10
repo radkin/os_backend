@@ -370,6 +370,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 var possibleExistingSponsor = getSponsorByName(d.getContributorName());
                 if (!possibleExistingSponsor.isPresent()) {
                     sponsor = mapFecDonorToSponsor(d);
+                    newSponsors.add(sponsor);
                 } else {
                     sponsor = possibleExistingSponsor.get();
                 }
@@ -399,7 +400,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         var campaignResponse = new CampaignResponse();
         campaignResponse.setCommittees(committeeResponses);
         campaignResponse.setSponsors(sponsorResponses);
-        campaignResponse.setDonations(donationResponses);
+//        campaignResponse.setDonations(donationResponses);
 
         return campaignResponse;
     }
