@@ -14,8 +14,8 @@ import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
-import co.inajar.oursponsors.models.fec.DonationResponse;
 import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
+import co.inajar.oursponsors.models.fec.MiniDonationResponse;
 import co.inajar.oursponsors.models.fec.SponsorResponse;
 import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
 import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
@@ -394,13 +394,13 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 .collect(Collectors.toList());
 
         var donationResponses = donations.parallelStream()
-                .map(DonationResponse::new)
+                .map(MiniDonationResponse::new)
                 .collect(Collectors.toList());
 
         var campaignResponse = new CampaignResponse();
         campaignResponse.setCommittees(committeeResponses);
         campaignResponse.setSponsors(sponsorResponses);
-//        campaignResponse.setDonations(donationResponses);
+        campaignResponse.setDonations(donationResponses);
 
         return campaignResponse;
     }
