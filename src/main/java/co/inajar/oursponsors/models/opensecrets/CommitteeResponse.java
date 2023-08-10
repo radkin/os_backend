@@ -1,6 +1,6 @@
 package co.inajar.oursponsors.models.opensecrets;
 
-import co.inajar.oursponsors.dbos.entities.Committee;
+import co.inajar.oursponsors.dbos.entities.campaigns.Committee;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 

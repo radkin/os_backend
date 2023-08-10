@@ -1,8 +1,8 @@
 package co.inajar.oursponsors.services.opensecrets;
 
-import co.inajar.oursponsors.dbos.entities.Committee;
-import co.inajar.oursponsors.dbos.entities.Donation;
-import co.inajar.oursponsors.dbos.entities.Sponsor;
+import co.inajar.oursponsors.dbos.entities.campaigns.Committee;
+import co.inajar.oursponsors.dbos.entities.campaigns.Donation;
+import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
 import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
 import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
@@ -15,8 +15,11 @@ import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
+import co.inajar.oursponsors.models.fec.MiniDonationResponse;
+import co.inajar.oursponsors.models.fec.SponsorResponse;
 import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
 import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
+import co.inajar.oursponsors.models.opensecrets.CommitteeResponse;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
 import co.inajar.oursponsors.services.fec.CommitteesApiManager;
@@ -43,6 +46,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpClient;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -306,7 +310,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     }
 
     @Override
-    public List<CampaignResponse> getCampaignListResponse(CommitteeRequest data) {
+    public CampaignResponse getCampaignListResponse(CommitteeRequest data) {
         var cmtes = new ArrayList<String>();
         try {
             Elements links = new Elements();
@@ -357,6 +361,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
         // use cmteFecDonors to populate sponsor and donation table
         List<Sponsor> newSponsors = new ArrayList<Sponsor>();
+        List<Donation> donations = new ArrayList<Donation>();
         cmteFecDonors.forEach((cmte, donorList) -> {
             System.out.println(cmte);
             System.out.println("------------------------------------");
@@ -366,12 +371,18 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 var possibleExistingSponsor = getSponsorByName(d.getContributorName());
                 if (!possibleExistingSponsor.isPresent()) {
                     sponsor = mapFecDonorToSponsor(d);
+                    newSponsors.add(sponsor);
                 } else {
+                    BigDecimal possibleExistingSponsorYtd = possibleExistingSponsor.get().getContributorAggregateYtd();
+                    BigDecimal newSponsorYtd = new BigDecimal(d.getContributorAggregateYtd());
                     sponsor = possibleExistingSponsor.get();
+                    if (newSponsorYtd.compareTo(possibleExistingSponsorYtd) == 1) {
+                        sponsor.setContributorAggregateYtd(possibleExistingSponsorYtd);
+                    }
                 }
 
                 // create a donation. ToDo: check for dupes
-                mapFecDonorToDonation(d, sponsor, data.getPpId());
+                donations.add(mapFecDonorToDonation(d, sponsor, data.getPpId()));
 
                 // Do something for the campaign response.
 
@@ -380,7 +391,24 @@ public class CandidatesApiImpl implements CandidatesApiManager {
             });
         });
 
-        return new ArrayList<CampaignResponse>();
+        var committeeResponses = committees.parallelStream()
+                .map(CommitteeResponse::new)
+                .collect(Collectors.toList());
+
+        var sponsorResponses = newSponsors.parallelStream()
+                .map(SponsorResponse::new)
+                .collect(Collectors.toList());
+
+        var donationResponses = donations.parallelStream()
+                .map(MiniDonationResponse::new)
+                .collect(Collectors.toList());
+
+        var campaignResponse = new CampaignResponse();
+        campaignResponse.setCommittees(committeeResponses);
+        campaignResponse.setSponsors(sponsorResponses);
+        campaignResponse.setDonations(donationResponses);
+
+        return campaignResponse;
     }
 
     @Override
@@ -417,9 +445,11 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor) {
         var newSponsor = new Sponsor();
-        newSponsor.setContributionReceiptAmount(donor.getContributionReceiptAmount());
+        var receiptAmount = new BigDecimal(donor.getContributionReceiptAmount());
+        newSponsor.setContributionReceiptAmount(receiptAmount);
         newSponsor.setContributionReceiptDate(donor.getContributionReceiptDate());
-        newSponsor.setContributorAggregateYtd(donor.getContributorAggregateYtd());
+        var aggregateAmount = new BigDecimal(donor.getContributorAggregateYtd());
+        newSponsor.setContributorAggregateYtd(aggregateAmount);
         newSponsor.setContributorCity(donor.getContributorCity());
         newSponsor.setContributorEmployer(donor.getContributorEmployer());
         newSponsor.setContributorFirstName(donor.getContributorFirstName());
@@ -437,7 +467,8 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     private Donation mapFecDonorToDonation(FecCommitteeDonor donor, Sponsor sponsor, String ppId) {
         var newDonation = new Donation();
         newDonation.setDateOfDonation(LocalDate.parse(donor.getContributionReceiptDate()));
-        newDonation.setAmount((int) Math.round(Double.valueOf(donor.getContributionReceiptAmount())));
+        BigDecimal donation = new BigDecimal(donor.getContributionReceiptAmount());
+        newDonation.setAmount(donation);
         newDonation.setSponsor(sponsor);
         newDonation.setPpId(ppId);
         return donationRepo.save(newDonation);

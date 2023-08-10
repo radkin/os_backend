@@ -1,8 +1,9 @@
-package co.inajar.oursponsors.dbos.entities;
+package co.inajar.oursponsors.dbos.entities.campaigns;
 
 import lombok.Data;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -15,7 +16,7 @@ public class Donation {
     private Long id;
 
     @Column(name = "amount")
-    private Integer amount;
+    private BigDecimal amount;
 
     @Column(name = "date_of_donation")
     private LocalDate dateOfDonation;
@@ -27,4 +28,5 @@ public class Donation {
     // could be Senator or Congress member
     @Column(name = "pp_id")
     private String ppId;
+
 }

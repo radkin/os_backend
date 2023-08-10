@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS sponsors
 (
     id                          SERIAL PRIMARY KEY,
-    contribution_receipt_amount TEXT,
+    contribution_receipt_amount NUMERIC(18, 2),
     contribution_receipt_date   TEXT,
-    contributor_aggregate_ytd   TEXT,
+    contributor_aggregate_ytd   NUMERIC(18, 2),
     contributor_city            TEXT,
     contributor_employer        TEXT,
     contributor_first_name      TEXT,

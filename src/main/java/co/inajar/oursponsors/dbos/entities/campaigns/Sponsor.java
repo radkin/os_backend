@@ -1,8 +1,9 @@
-package co.inajar.oursponsors.dbos.entities;
+package co.inajar.oursponsors.dbos.entities.campaigns;
 
 import lombok.Data;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,13 +17,13 @@ public class Sponsor {
     private Long id;
 
     @Column(name = "contribution_receipt_amount")
-    private String contributionReceiptAmount;
+    private BigDecimal contributionReceiptAmount;
 
     @Column(name = "contribution_receipt_date")
     private String contributionReceiptDate;
 
     @Column(name = "contributor_aggregate_ytd")
-    private String contributorAggregateYtd;
+    private BigDecimal contributorAggregateYtd;
 
     @Column(name = "contributor_city")
     private String contributorCity;
@@ -57,9 +58,9 @@ public class Sponsor {
     @Column(name = "contributor_zip")
     private String contributorZip;
 
-    @OneToMany(mappedBy = "sponsor")
+    @OneToMany(cascade = CascadeType.ALL,
+            mappedBy = "sponsor", orphanRemoval = true)
     private Set<Donation> donations = new HashSet<>();
-    
 
     // ToDo: add a relationship to our donations table
 

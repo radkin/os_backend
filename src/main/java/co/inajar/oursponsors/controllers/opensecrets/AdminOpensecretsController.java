@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -52,13 +51,11 @@ public class AdminOpensecretsController {
     /* NOTE: this is really both OpenSecrets and FEC */
     @PreAuthorize("isAuthenticated()")
     @PostMapping(path = "download_campaign")
-    public ResponseEntity<List<CampaignResponse>> downloadCampaign(@RequestBody CommitteeRequest data) {
+    public ResponseEntity<CampaignResponse> downloadCampaign(@RequestBody CommitteeRequest data) {
+        var response = new CampaignResponse();
         var httpStatus = HttpStatus.OK;
-        var campaignResponses = candidatesApiManager.getCampaignListResponse(data);
-//        var response = candidatesApiManager.mapHtmlParserResponseToCampaign(campaignResponses).stream()
-//                .map(CampaignResponse::new)
-//                .toList();
-        var response = new ArrayList<CampaignResponse>();
+        response = candidatesApiManager.getCampaignListResponse(data);
+
         return new ResponseEntity<>(response, httpStatus);
     }
 }
