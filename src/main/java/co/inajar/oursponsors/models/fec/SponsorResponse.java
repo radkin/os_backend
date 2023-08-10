@@ -55,8 +55,8 @@ public class SponsorResponse {
     public SponsorResponse(Sponsor sponsor) {
         id = sponsor.getId();
         contributionReceiptDate = sponsor.getContributionReceiptDate();
-        contributionReceiptAmount = sponsor.getContributionReceiptAmount();
-        contributorAggregateYtd = sponsor.getContributorAggregateYtd();
+        contributionReceiptAmount = String.valueOf(sponsor.getContributionReceiptAmount());
+        contributorAggregateYtd = String.valueOf(sponsor.getContributorAggregateYtd());
         contributorCity = sponsor.getContributorCity();
         contributorEmployer = sponsor.getContributorEmployer();
         contributorFirstName = sponsor.getContributorFirstName();

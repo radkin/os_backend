@@ -46,6 +46,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpClient;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -372,7 +373,12 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                     sponsor = mapFecDonorToSponsor(d);
                     newSponsors.add(sponsor);
                 } else {
+                    BigDecimal possibleExistingSponsorYtd = possibleExistingSponsor.get().getContributorAggregateYtd();
+                    BigDecimal newSponsorYtd = new BigDecimal(d.getContributorAggregateYtd());
                     sponsor = possibleExistingSponsor.get();
+                    if (newSponsorYtd.compareTo(possibleExistingSponsorYtd) == 1) {
+                        sponsor.setContributorAggregateYtd(possibleExistingSponsorYtd);
+                    }
                 }
 
                 // create a donation. ToDo: check for dupes
@@ -439,9 +445,11 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor) {
         var newSponsor = new Sponsor();
-        newSponsor.setContributionReceiptAmount(donor.getContributionReceiptAmount());
+        var receiptAmount = new BigDecimal(donor.getContributionReceiptAmount());
+        newSponsor.setContributionReceiptAmount(receiptAmount);
         newSponsor.setContributionReceiptDate(donor.getContributionReceiptDate());
-        newSponsor.setContributorAggregateYtd(donor.getContributorAggregateYtd());
+        var aggregateAmount = new BigDecimal(donor.getContributorAggregateYtd());
+        newSponsor.setContributorAggregateYtd(aggregateAmount);
         newSponsor.setContributorCity(donor.getContributorCity());
         newSponsor.setContributorEmployer(donor.getContributorEmployer());
         newSponsor.setContributorFirstName(donor.getContributorFirstName());
@@ -459,7 +467,8 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     private Donation mapFecDonorToDonation(FecCommitteeDonor donor, Sponsor sponsor, String ppId) {
         var newDonation = new Donation();
         newDonation.setDateOfDonation(LocalDate.parse(donor.getContributionReceiptDate()));
-        newDonation.setAmount((int) Math.round(Double.valueOf(donor.getContributionReceiptAmount())));
+        BigDecimal donation = new BigDecimal(donor.getContributionReceiptAmount());
+        newDonation.setAmount(donation);
         newDonation.setSponsor(sponsor);
         newDonation.setPpId(ppId);
         return donationRepo.save(newDonation);

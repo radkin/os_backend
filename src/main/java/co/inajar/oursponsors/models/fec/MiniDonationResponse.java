@@ -11,7 +11,7 @@ public class MiniDonationResponse {
     private Long id;
 
     @JsonProperty(value = "amount")
-    private Integer amount;
+    private String amount;
 
     @JsonProperty(value = "date_of_donation")
     private LocalDate dateOfDonation;
@@ -21,7 +21,7 @@ public class MiniDonationResponse {
 
     public MiniDonationResponse(Donation donation) {
         id = donation.getId();
-        amount = donation.getAmount();
+        amount = String.valueOf(donation.getAmount());
         dateOfDonation = donation.getDateOfDonation();
         ppId = donation.getPpId();
     }

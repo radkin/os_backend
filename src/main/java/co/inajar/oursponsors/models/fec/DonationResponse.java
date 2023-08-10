@@ -12,7 +12,7 @@ public class DonationResponse {
     private Long id;
 
     @JsonProperty(value = "amount")
-    private Integer amount;
+    private String amount;
 
     @JsonProperty(value = "date_of_donation")
     private LocalDate dateOfDonation;
@@ -25,7 +25,7 @@ public class DonationResponse {
 
     public DonationResponse(Donation donation) {
         id = donation.getId();
-        amount = donation.getAmount();
+        amount = String.valueOf(donation.getAmount());
         dateOfDonation = donation.getDateOfDonation();
         sponsor = donation.getSponsor();
         ppId = donation.getPpId();
