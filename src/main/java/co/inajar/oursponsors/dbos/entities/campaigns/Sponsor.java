@@ -1,11 +1,11 @@
 package co.inajar.oursponsors.dbos.entities.campaigns;
 
+import co.inajar.oursponsors.dbos.entities.chambers.Congress;
+import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import lombok.Data;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "sponsors")
@@ -58,11 +58,16 @@ public class Sponsor {
     @Column(name = "contributor_zip")
     private String contributorZip;
 
-    @OneToMany(cascade = CascadeType.ALL,
-            mappedBy = "sponsor", orphanRemoval = true)
-    private Set<Donation> donations = new HashSet<>();
+//    @OneToMany(cascade = CascadeType.ALL,
+//            mappedBy = "sponsor", orphanRemoval = true)
+//    private Set<Donation> donations = new HashSet<>();
 
-    // ToDo: add a relationship to our donations table
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "congress_id")
+    private Congress congress;
 
-    // ToDo: add a relationship to the recipient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "senator_id")
+    private Senator senator;
+
 }

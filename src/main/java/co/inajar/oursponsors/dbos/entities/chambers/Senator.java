@@ -1,10 +1,13 @@
 package co.inajar.oursponsors.dbos.entities.chambers;
 
+import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
 import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "senators")
@@ -151,5 +154,9 @@ public class Senator {
 
     @Column(name = "votes_against_party_pct")
     private Double votesAgainstPartyPct;
+
+    @OneToMany(cascade = CascadeType.ALL,
+            mappedBy = "senator", orphanRemoval = true)
+    private Set<Sponsor> sponsors = new HashSet<>();
 
 }

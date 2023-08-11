@@ -27,7 +27,7 @@ public class DonationResponse {
         id = donation.getId();
         amount = String.valueOf(donation.getAmount());
         dateOfDonation = donation.getDateOfDonation();
-        sponsor = donation.getSponsor();
+//        sponsor = donation.getSponsor();
         ppId = donation.getPpId();
     }
 
