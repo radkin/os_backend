@@ -370,7 +370,8 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 // we are using the name, but it could be a problem.
                 var possibleExistingSponsor = getSponsorByName(d.getContributorName());
                 if (!possibleExistingSponsor.isPresent()) {
-                    sponsor = mapFecDonorToSponsor(d);
+                    // we need to know if crp_id is for a Senator or Congress and we need their ID
+                    sponsor = mapFecDonorToSponsor(d, data.getChamber(), data.getOsId());
                     newSponsors.add(sponsor);
                 } else {
                     BigDecimal possibleExistingSponsorYtd = possibleExistingSponsor.get().getContributorAggregateYtd();
@@ -443,7 +444,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return Optional.ofNullable(sponsorsRepo.findByContributorName(name));
     }
 
-    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor) {
+    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, String chamber, Long osId) {
         var newSponsor = new Sponsor();
         var receiptAmount = new BigDecimal(donor.getContributionReceiptAmount());
         newSponsor.setContributionReceiptAmount(receiptAmount);
@@ -461,6 +462,24 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         newSponsor.setContributorStreet1(donor.getContributorStreet1());
         newSponsor.setContributorStreet2(donor.getContributorStreet2());
         newSponsor.setContributorZip(donor.getContributorZip());
+
+        if (chamber.equals("senator")) {
+            var possibleSenator = Optional.ofNullable(senatorRepo.getById(osId));
+            if (possibleSenator.isPresent()) {
+                newSponsor.setSenator(possibleSenator.get());
+            } else {
+                logger.debug("No Senator found by ID {}", osId);
+            }
+        } else if (chamber.equals("congress")) {
+            var possibleCongress = Optional.ofNullable(congressRepo.getById(osId));
+            if (possibleCongress.isPresent()) {
+                newSponsor.setCongress(possibleCongress.get());
+            } else {
+                logger.debug("No Congress found for ID {}", osId);
+            }
+        } else {
+            logger.debug("Invalid chamber please use either senator or congress");
+        }
         return sponsorsRepo.save(newSponsor);
     }
 
@@ -469,7 +488,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         newDonation.setDateOfDonation(LocalDate.parse(donor.getContributionReceiptDate()));
         BigDecimal donation = new BigDecimal(donor.getContributionReceiptAmount());
         newDonation.setAmount(donation);
-        newDonation.setSponsor(sponsor);
+//        newDonation.setSponsor(sponsor);
         newDonation.setPpId(ppId);
         return donationRepo.save(newDonation);
     }

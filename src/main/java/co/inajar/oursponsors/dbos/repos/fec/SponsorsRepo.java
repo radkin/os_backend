@@ -5,9 +5,23 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Repository
 @Transactional(readOnly = true)
 public interface SponsorsRepo extends JpaRepository<Sponsor, Long> {
 
     Sponsor findByContributorName(String name);
+
+    List<Sponsor> findSponsorsByCongressIdOrderByContributorAggregateYtdDesc(Long congressId);
+
+    List<Sponsor> findSponsorsBySenatorIdOrderByContributorAggregateYtdDesc(Long senatorId);
+
+
+    //    List<Sponsor> findSponsorsBySenatorId(Long senatorId);
+//    @Query(value = "SELECT s FROM Sponsor AS s " +
+//            "WHERE s.senator.id=:senatorId")
+//    List<Sponsor> findSponsorsBySenatorId(Long senatorId);
+
+
 }
