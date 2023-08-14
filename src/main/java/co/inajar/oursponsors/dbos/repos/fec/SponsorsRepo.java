@@ -13,9 +13,9 @@ public interface SponsorsRepo extends JpaRepository<Sponsor, Long> {
 
     Sponsor findByContributorName(String name);
 
-    List<Sponsor> findSponsorsBySenatorId(Long senatorId);
+    List<Sponsor> findSponsorsByCongressIdOrderByContributorAggregateYtdDesc(Long congressId);
 
-    List<Sponsor> findSponsorsByCongressId(Long congressId);
+    List<Sponsor> findSponsorsBySenatorIdOrderByContributorAggregateYtdDesc(Long senatorId);
 
 
     //    List<Sponsor> findSponsorsBySenatorId(Long senatorId);

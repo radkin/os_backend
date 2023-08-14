@@ -25,10 +25,10 @@ public class CommitteesImpl implements CommitteesManager {
         var sponsors = new ArrayList<Sponsor>();
         Optional<List<Sponsor>> possibleSponsors = Optional.of(new ArrayList<Sponsor>());
         if (data.getChamber().equals("senator")) {
-            possibleSponsors = Optional.ofNullable(sponsorsRepo.findSponsorsBySenatorId(data.getId()));
+            possibleSponsors = Optional.ofNullable(sponsorsRepo.findSponsorsBySenatorIdOrderByContributorAggregateYtdDesc(data.getId()));
         } else if (data.getChamber().equals("congress")) {
             System.out.println("nothing to see here");
-            possibleSponsors = Optional.ofNullable(sponsorsRepo.findSponsorsByCongressId(data.getId()));
+            possibleSponsors = Optional.ofNullable(sponsorsRepo.findSponsorsByCongressIdOrderByContributorAggregateYtdDesc(data.getId()));
         } else {
             logger.error("Unable to process request. Chamber and ID are required");
         }
