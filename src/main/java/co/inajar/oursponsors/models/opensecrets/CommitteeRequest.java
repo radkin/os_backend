@@ -17,4 +17,12 @@ public class CommitteeRequest {
     @JsonAlias(value = "crp_id")
     private String crpId;
 
+    // senator or congress
+    @JsonAlias(value = "chamber")
+    private String chamber;
+
+    // our sponsors ID for the above
+    @JsonAlias(value = "os_id")
+    private Long osId;
+
 }

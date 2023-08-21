@@ -14,5 +14,7 @@ CREATE TABLE IF NOT EXISTS sponsors
     contributor_state           TEXT,
     contributor_street_1        TEXT,
     contributor_street_2        TEXT,
-    contributor_zip             TEXT
+    contributor_zip             TEXT,
+    congress_id                 INTEGER,
+    senator_id                  INTEGER
 )

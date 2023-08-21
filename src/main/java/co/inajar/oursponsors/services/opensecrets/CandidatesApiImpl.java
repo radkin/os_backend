@@ -1,5 +1,6 @@
 package co.inajar.oursponsors.services.opensecrets;
 
+import co.inajar.oursponsors.dbos.entities.SponsorSenator;
 import co.inajar.oursponsors.dbos.entities.campaigns.Committee;
 import co.inajar.oursponsors.dbos.entities.campaigns.Donation;
 import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
@@ -8,6 +9,7 @@ import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.dbos.repos.CommitteeRepo;
+import co.inajar.oursponsors.dbos.repos.SponsorSenatorsRepo;
 import co.inajar.oursponsors.dbos.repos.fec.DonationRepo;
 import co.inajar.oursponsors.dbos.repos.fec.SponsorsRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
@@ -81,6 +83,9 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
     @Autowired
     private DonationRepo donationRepo;
+
+    @Autowired
+    private SponsorSenatorsRepo sponsorSenatorsRepo;
 
     @Autowired
     private CommitteesApiManager committeesApiManager;
@@ -370,7 +375,8 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 // we are using the name, but it could be a problem.
                 var possibleExistingSponsor = getSponsorByName(d.getContributorName());
                 if (!possibleExistingSponsor.isPresent()) {
-                    sponsor = mapFecDonorToSponsor(d);
+                    // we need to know if crp_id is for a Senator or Congress and we need their ID
+                    sponsor = mapFecDonorToSponsor(d, data.getChamber(), Long.valueOf(data.getOsId()));
                     newSponsors.add(sponsor);
                 } else {
                     BigDecimal possibleExistingSponsorYtd = possibleExistingSponsor.get().getContributorAggregateYtd();
@@ -443,7 +449,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return Optional.ofNullable(sponsorsRepo.findByContributorName(name));
     }
 
-    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor) {
+    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, String chamber, Long osId) {
         var newSponsor = new Sponsor();
         var receiptAmount = new BigDecimal(donor.getContributionReceiptAmount());
         newSponsor.setContributionReceiptAmount(receiptAmount);
@@ -461,7 +467,25 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         newSponsor.setContributorStreet1(donor.getContributorStreet1());
         newSponsor.setContributorStreet2(donor.getContributorStreet2());
         newSponsor.setContributorZip(donor.getContributorZip());
-        return sponsorsRepo.save(newSponsor);
+
+        if (chamber.equals("senator")) {
+            var possibleSenator = Optional.ofNullable(senatorRepo.getById(osId));
+            if (possibleSenator.isPresent()) {
+                // add new sponsor
+                Senator senator = possibleSenator.get();
+                sponsorsRepo.save(newSponsor);
+                // add sponsorSenator ManyToMany
+                SponsorSenator sponsorSenator = new SponsorSenator();
+                sponsorSenator.setSponsor(newSponsor);
+                sponsorSenator.setSenator(senator);
+                sponsorSenatorsRepo.save(sponsorSenator);
+            } else {
+                logger.debug("No Senator found by ID {}", osId);
+            }
+        } else {
+            logger.debug("Invalid chamber please use either senator or congress");
+        }
+        return newSponsor;
     }
 
     private Donation mapFecDonorToDonation(FecCommitteeDonor donor, Sponsor sponsor, String ppId) {
