@@ -55,7 +55,6 @@ public class CommitteesImpl implements CommitteesManager {
                             .collect(Collectors.toList());
                 }
             }
-
         } else {
             logger.error("Unable to process request. Chamber and ID are required");
         }

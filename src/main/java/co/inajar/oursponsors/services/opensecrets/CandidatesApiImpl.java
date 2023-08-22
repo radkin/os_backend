@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +61,9 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     private static final String OPEN_SECRETS_CLIENT_PROBLEM = "Problem with client request to OpenSecrets.org CID: {}";
     private static final String UNABLE_TO_SLEEP = "Unable to sleep {}";
     private static final String CALL_LIMIT_REACHED = "Very Likely OpenSecretsOrg saying - call limit has been reached";
+    private static final String SCRAPE_OPEN_SECRETS_CAMPAIGN_PAGE = "Unable to scrape opensecrets presidential race campaign data: {}";
+    private static final String SENATOR_ID_NOT_FOUND = "No Senator found by ID: {}";
+    private static final String INVALID_CHAMBER_NAME = "Invalid chamber please use either senator or congress";
 
     @Autowired
     private SectorRepo sectorRepo;
@@ -313,69 +315,83 @@ public class CandidatesApiImpl implements CandidatesApiManager {
 
         return contributorsList;
     }
-
+    
     @Override
     public CampaignResponse getCampaignListResponse(CommitteeRequest data) {
-        var cmtes = new ArrayList<String>();
-        try {
-            Elements links = new Elements();
-            String url = "https://www.opensecrets.org/" + data.getTwoYearTransactionPeriod()
-                    + "-presidential-race/candidate?id=" + data.getCrpId();
-            Document doc = Jsoup.connect(url).get();
-            Elements content = doc.select("#main > div.Main-wrap.l-padding.u-mt4.u-mb4 > div > div > div.l-primary > div");
-            Elements elements = content.first().getElementsByClass("DataTable");
-            for (Element el : elements) {
-                links = el.getElementsByTag("a");
-            }
-            for (Element hrefel : links) {
-                Element link = hrefel.select("a").first();
-                String href = link.attr("href");
+        List<String> cmtes = scrapeCmteUrls(data);
 
-                cmtes.add(extractCmteFromHref(href));
-            }
-        } catch (Error | IOException e) {
-            logger.error("Oops" + e);
-        }
-        // populate committee entries for each of the results
-//        System.out.println(cmtes);
-
-        // first make sure there is not an existing entry
-        // 1. find committees by ppId (limit should be 3 entries).
-        // 2. check if the two year transaction period is the same.
-        // if Yes, it's a duplicate. If not, add a new row.
-
-        /* SKIPPING THE ABOVE CHECKS FOR NOW */
         List<Committee> committees = cmtes.parallelStream()
                 .map(cmte -> createCommittee(data, cmte))
                 .collect(Collectors.toList());
 
-        System.out.println(committees);
+        Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committees, data);
 
-        // for each committee get a list of donors and filter to $50k or $100K ?
+        List<Sponsor> newSponsors = processDonorsAndGetNewSponsors(data, cmteFecDonors);
 
-        // cmte -> List of donors HashMap
-        // NOTE: when mapped to our model donor = sponsor
-        var cmteFecDonors = new HashMap<String, List<FecCommitteeDonor>>();
-        for (var cmte : cmtes) {
-            List<FecCommitteeDonor> donors =
-                    committeesApiManager.getFecCommitteeDonors(cmte, data.getTwoYearTransactionPeriod());
-            cmteFecDonors.put(cmte, donors);
+        List<CommitteeResponse> committeeResponses = committees.parallelStream()
+                .map(CommitteeResponse::new)
+                .collect(Collectors.toList());
+
+        List<SponsorResponse> sponsorResponses = newSponsors.parallelStream()
+                .map(SponsorResponse::new)
+                .collect(Collectors.toList());
+
+        List<MiniDonationResponse> donationResponses = newSponsors.parallelStream()
+                .flatMap(sponsor -> sponsor.getDonations().stream())
+                .map(MiniDonationResponse::new)
+                .collect(Collectors.toList());
+
+        CampaignResponse campaignResponse = new CampaignResponse();
+        campaignResponse.setCommittees(committeeResponses);
+        campaignResponse.setSponsors(sponsorResponses);
+        campaignResponse.setDonations(donationResponses);
+        return campaignResponse;
+    }
+
+    private List<String> scrapeCmteUrls(CommitteeRequest data) {
+        List<String> cmtes = new ArrayList<>();
+        try {
+            String url = "https://www.opensecrets.org/" + data.getTwoYearTransactionPeriod()
+                    + "-presidential-race/candidate?id=" + data.getCrpId();
+            Document doc = Jsoup.connect(url).get();
+            Elements links = doc.select("#main > div.Main-wrap.l-padding.u-mt4.u-mb4 > div > div > div.l-primary > div")
+                    .first()
+                    .getElementsByClass("DataTable")
+                    .select("a");
+            links.forEach(hrefel -> {
+                String href = hrefel.attr("href");
+                cmtes.add(extractCmteFromHref(href));
+            });
+        } catch (IOException e) {
+            logger.error(SCRAPE_OPEN_SECRETS_CAMPAIGN_PAGE, e);
         }
+        return cmtes;
+    }
 
-        System.out.println(cmteFecDonors);
+    private Committee createCommittee(CommitteeRequest data, String cmte) {
+        var committee = new Committee();
+        committee.setPpId(data.getPpId());
+        committee.setTwoYearTransactionPeriod(data.getTwoYearTransactionPeriod());
+        committee.setFecCommitteeId(cmte);
+        return committeeRepo.save(committee);
+    }
 
-        // use cmteFecDonors to populate sponsor and donation table
-        List<Sponsor> newSponsors = new ArrayList<Sponsor>();
-        List<Donation> donations = new ArrayList<Donation>();
+    private Map<String, List<FecCommitteeDonor>> fetchCmteFecDonors(List<Committee> committees, CommitteeRequest data) {
+        return committees.parallelStream()
+                .collect(Collectors.toMap(
+                        Committee::getFecCommitteeId,
+                        cmte -> committeesApiManager.getFecCommitteeDonors(cmte.getFecCommitteeId(), data.getTwoYearTransactionPeriod())
+                ));
+    }
+
+    private List<Sponsor> processDonorsAndGetNewSponsors(CommitteeRequest data, Map<String, List<FecCommitteeDonor>> cmteFecDonors) {
+        List<Sponsor> newSponsors = new ArrayList<>();
+        List<Donation> donations = new ArrayList<>();
         cmteFecDonors.forEach((cmte, donorList) -> {
-            System.out.println(cmte);
-            System.out.println("------------------------------------");
             donorList.forEach(d -> {
-                var sponsor = new Sponsor();
-                // we are using the name, but it could be a problem.
-                var possibleExistingSponsor = getSponsorByName(d.getContributorName());
+                Optional<Sponsor> possibleExistingSponsor = getSponsorByName(d.getContributorName());
+                Sponsor sponsor;
                 if (!possibleExistingSponsor.isPresent()) {
-                    // we need to know if crp_id is for a Senator or Congress and we need their ID
                     sponsor = mapFecDonorToSponsor(d, data.getChamber(), Long.valueOf(data.getOsId()));
                     newSponsors.add(sponsor);
                 } else {
@@ -386,40 +402,10 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                         sponsor.setContributorAggregateYtd(possibleExistingSponsorYtd);
                     }
                 }
-
-                // create a donation. ToDo: check for dupes
                 donations.add(mapFecDonorToDonation(d, sponsor, data.getPpId()));
-
-                // Do something for the campaign response.
-
-
-//                System.out.println("Name:" + d.getContributorName() + "yearToDate:" + d.getContributorAggregateYtd());
             });
         });
-
-        var committeeResponses = committees.parallelStream()
-                .map(CommitteeResponse::new)
-                .collect(Collectors.toList());
-
-        var sponsorResponses = newSponsors.parallelStream()
-                .map(SponsorResponse::new)
-                .collect(Collectors.toList());
-
-        var donationResponses = donations.parallelStream()
-                .map(MiniDonationResponse::new)
-                .collect(Collectors.toList());
-
-        var campaignResponse = new CampaignResponse();
-        campaignResponse.setCommittees(committeeResponses);
-        campaignResponse.setSponsors(sponsorResponses);
-        campaignResponse.setDonations(donationResponses);
-
-        return campaignResponse;
-    }
-
-    @Override
-    public List<Committee> getCommittees() {
-        return committeeRepo.findAll();
+        return newSponsors;
     }
 
     private static String extractCmteFromHref(String href) {
@@ -435,14 +421,6 @@ public class CandidatesApiImpl implements CandidatesApiManager {
             }
         }
         return null; // Return null if "cmte" not found
-    }
-
-    private Committee createCommittee(CommitteeRequest data, String cmte) {
-        var committee = new Committee();
-        committee.setPpId(data.getPpId());
-        committee.setTwoYearTransactionPeriod(data.getTwoYearTransactionPeriod());
-        committee.setFecCommitteeId(cmte);
-        return committeeRepo.save(committee);
     }
 
     private Optional<Sponsor> getSponsorByName(String name) {
@@ -480,10 +458,10 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 sponsorSenator.setSenator(senator);
                 sponsorSenatorsRepo.save(sponsorSenator);
             } else {
-                logger.debug("No Senator found by ID {}", osId);
+                logger.debug(SENATOR_ID_NOT_FOUND, osId);
             }
         } else {
-            logger.debug("Invalid chamber please use either senator or congress");
+            logger.debug(INVALID_CHAMBER_NAME);
         }
         return newSponsor;
     }
@@ -496,6 +474,11 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         newDonation.setSponsor(sponsor);
         newDonation.setPpId(ppId);
         return donationRepo.save(newDonation);
+    }
+
+    @Override
+    public List<Committee> getCommittees() {
+        return committeeRepo.findAll();
     }
 
     private Contributor createContributor(OpenSecretsContributor openSecretsContributor) {

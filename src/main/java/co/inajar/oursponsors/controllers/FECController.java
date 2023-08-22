@@ -30,7 +30,6 @@ public class FECController {
         var httpStatus = HttpStatus.OK;
         var possibleSponsors = committeesManager.getSponsors(data);
         if (!possibleSponsors.isEmpty()) {
-            System.out.println(possibleSponsors);
             var list = possibleSponsors.parallelStream()
                     .map(SponsorResponse::new)
                     .collect(Collectors.toList());
