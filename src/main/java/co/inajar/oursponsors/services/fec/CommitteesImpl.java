@@ -1,5 +1,6 @@
 package co.inajar.oursponsors.services.fec;
 
+import co.inajar.oursponsors.dbos.entities.SponsorSenator;
 import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.dbos.repos.SponsorSenatorsRepo;
@@ -12,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CommitteesImpl implements CommitteesManager {
@@ -25,20 +28,37 @@ public class CommitteesImpl implements CommitteesManager {
 
     @Autowired
     SponsorSenatorsRepo sponsorSenatorsRepo;
-
+    
     private Logger logger = LoggerFactory.getLogger(CommitteesImpl.class);
 
     @Override
-    public Set<Sponsor> getSponsors(SponsorRequest data) {
+    public List<Sponsor> getSponsors(SponsorRequest data) {
         if (data.getChamber().equals("senator")) {
-            Senator senator = senatorRepo.findById(data.getId()).orElse(null);
-            if (senator != null) {
-                return senator.getSponsors();
+            Optional<Senator> senator = senatorRepo.findById(data.getId());
+            if (senator.isPresent()) {
+                Optional<List<SponsorSenator>> possibleSponsorSenators = sponsorSenatorsRepo.findSponsorsBySenatorId(senator.get().getId());
+                if (possibleSponsorSenators.isPresent()) {
+                    var sponsorSenators = possibleSponsorSenators.get().parallelStream()
+                            .map(SponsorSenator::getSponsor)
+                            .collect(Collectors.toList());
+                    List<Long> sponsorIds = sponsorSenators.parallelStream()
+                            .map(Sponsor::getId)
+                            .collect(Collectors.toList());
+                    return sponsorIds.parallelStream()
+                            .map(this::getSponsorById)
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .collect(Collectors.toList());
+                }
             }
 
         } else {
             logger.error("Unable to process request. Chamber and ID are required");
         }
-        return Collections.emptySet();
+        return Collections.emptyList();
+    }
+
+    private Optional<Sponsor> getSponsorById(Long id) {
+        return sponsorsRepo.findById(id);
     }
 }

@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
@@ -25,14 +25,15 @@ public class FECController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(path = "get_sponsors")
-    public ResponseEntity<Set<SponsorResponse>> getSponsors(@RequestBody SponsorRequest data) {
-        var response = new HashSet<SponsorResponse>();
+    public ResponseEntity<List<SponsorResponse>> getSponsors(@RequestBody SponsorRequest data) {
+        var response = new ArrayList<SponsorResponse>();
         var httpStatus = HttpStatus.OK;
         var possibleSponsors = committeesManager.getSponsors(data);
         if (!possibleSponsors.isEmpty()) {
+            System.out.println(possibleSponsors);
             var list = possibleSponsors.parallelStream()
                     .map(SponsorResponse::new)
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toList());
             response.addAll(list);
         }
         return new ResponseEntity<>(response, httpStatus);

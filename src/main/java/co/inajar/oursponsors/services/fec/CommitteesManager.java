@@ -3,9 +3,9 @@ package co.inajar.oursponsors.services.fec;
 import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
 import co.inajar.oursponsors.models.fec.SponsorRequest;
 
-import java.util.Set;
+import java.util.List;
 
 public interface CommitteesManager {
 
-    Set<Sponsor> getSponsors(SponsorRequest data);
+    List<Sponsor> getSponsors(SponsorRequest data);
 }
