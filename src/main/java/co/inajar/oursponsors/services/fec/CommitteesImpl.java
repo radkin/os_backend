@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,7 +29,7 @@ public class CommitteesImpl implements CommitteesManager {
 
     @Autowired
     SponsorSenatorsRepo sponsorSenatorsRepo;
-    
+
     private Logger logger = LoggerFactory.getLogger(CommitteesImpl.class);
 
     @Override
@@ -44,10 +45,13 @@ public class CommitteesImpl implements CommitteesManager {
                     List<Long> sponsorIds = sponsorSenators.parallelStream()
                             .map(Sponsor::getId)
                             .collect(Collectors.toList());
-                    return sponsorIds.parallelStream()
+                    var sponsors = sponsorIds.parallelStream()
                             .map(this::getSponsorById)
                             .filter(Optional::isPresent)
                             .map(Optional::get)
+                            .collect(Collectors.toList());
+                    return sponsors.stream()
+                            .sorted(Comparator.comparing(Sponsor::getContributorAggregateYtd).reversed())
                             .collect(Collectors.toList());
                 }
             }
