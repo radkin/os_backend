@@ -64,6 +64,8 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     private static final String SCRAPE_OPEN_SECRETS_CAMPAIGN_PAGE = "Unable to scrape opensecrets presidential race campaign data: {}";
     private static final String SENATOR_ID_NOT_FOUND = "No Senator found by ID: {}";
     private static final String INVALID_CHAMBER_NAME = "Invalid chamber please use either senator or congress";
+    // temporary
+    private static final String NON_PRESIDENTIAL_CANDIDATE = "Cannot scrape opensecrets for non-presidential candidate fundraising data";
 
     @Autowired
     private SectorRepo sectorRepo;
@@ -309,16 +311,21 @@ public class CandidatesApiImpl implements CandidatesApiManager {
             var list = mapOpenSecretsContributorToModel(webClient.block(), cid, cycle);
             contributorsList.addAll(list);
         } else {
-            logger.debug(CALL_LIMIT_REACHED);
+            logger.info(CALL_LIMIT_REACHED);
             logger.error(OPEN_SECRETS_CLIENT_PROBLEM, cid);
         }
 
         return contributorsList;
     }
-    
+
     @Override
     public CampaignResponse getCampaignListResponse(CommitteeRequest data) {
-        List<String> cmtes = scrapeCmteUrls(data);
+        List<String> cmtes = new ArrayList<>();
+        if (Boolean.TRUE.equals(isPresidentialCandidate(data.getTwoYearTransactionPeriod()))) {
+            cmtes = scrapeCmteUrls(data);
+        } else {
+            logger.info(NON_PRESIDENTIAL_CANDIDATE);
+        }
 
         List<Committee> committees = cmtes.parallelStream()
                 .map(cmte -> createCommittee(data, cmte))
@@ -346,6 +353,11 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         campaignResponse.setSponsors(sponsorResponses);
         campaignResponse.setDonations(donationResponses);
         return campaignResponse;
+    }
+
+    private Boolean isPresidentialCandidate(Integer year) {
+        if (year % 4 == 0) return true;
+        return false;
     }
 
     private List<String> scrapeCmteUrls(CommitteeRequest data) {
@@ -458,10 +470,10 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                 sponsorSenator.setSenator(senator);
                 sponsorSenatorsRepo.save(sponsorSenator);
             } else {
-                logger.debug(SENATOR_ID_NOT_FOUND, osId);
+                logger.info(SENATOR_ID_NOT_FOUND, osId);
             }
         } else {
-            logger.debug(INVALID_CHAMBER_NAME);
+            logger.info(INVALID_CHAMBER_NAME);
         }
         return newSponsor;
     }
