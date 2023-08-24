@@ -6,8 +6,6 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "sponsors")
@@ -60,9 +58,9 @@ public class Sponsor {
     @Column(name = "contributor_zip")
     private String contributorZip;
 
-    @OneToMany(cascade = CascadeType.ALL,
-            mappedBy = "sponsor", orphanRemoval = true)
-    private Set<Donation> donations = new HashSet<>();
+//    @OneToMany(cascade = CascadeType.ALL,
+//            mappedBy = "sponsor", orphanRemoval = true)
+//    private Set<Donation> donations = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "congress_id")

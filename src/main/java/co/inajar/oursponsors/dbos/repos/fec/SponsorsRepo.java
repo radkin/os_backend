@@ -14,4 +14,5 @@ public interface SponsorsRepo extends JpaRepository<Sponsor, Long> {
     Sponsor findByContributorName(String name);
 
     Optional<Sponsor> findById(Long id);
+
 }

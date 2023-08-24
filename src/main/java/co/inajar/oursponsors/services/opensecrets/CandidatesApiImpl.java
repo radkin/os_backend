@@ -483,7 +483,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         newDonation.setDateOfDonation(LocalDate.parse(donor.getContributionReceiptDate()));
         BigDecimal donation = new BigDecimal(donor.getContributionReceiptAmount());
         newDonation.setAmount(donation);
-        newDonation.setSponsor(sponsor);
+//        newDonation.setSponsor(sponsor);
         newDonation.setPpId(ppId);
         return donationRepo.save(newDonation);
     }

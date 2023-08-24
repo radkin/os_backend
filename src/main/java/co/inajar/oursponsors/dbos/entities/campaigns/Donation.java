@@ -21,9 +21,9 @@ public class Donation {
     @Column(name = "date_of_donation")
     private LocalDate dateOfDonation;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sponsor_id")
-    private Sponsor sponsor;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "sponsor_id")
+//    private Sponsor sponsor;
 
     // could be Senator or Congress member
     @Column(name = "pp_id")
