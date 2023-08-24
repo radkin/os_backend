@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CommitteesImpl implements CommitteesManager {
@@ -41,18 +40,18 @@ public class CommitteesImpl implements CommitteesManager {
                 if (possibleSponsorSenators.isPresent()) {
                     var sponsorSenators = possibleSponsorSenators.get().parallelStream()
                             .map(SponsorSenator::getSponsor)
-                            .collect(Collectors.toList());
+                            .toList();
                     List<Long> sponsorIds = sponsorSenators.parallelStream()
                             .map(Sponsor::getId)
-                            .collect(Collectors.toList());
+                            .toList();
                     var sponsors = sponsorIds.parallelStream()
                             .map(this::getSponsorById)
                             .filter(Optional::isPresent)
                             .map(Optional::get)
-                            .collect(Collectors.toList());
+                            .toList();
                     return sponsors.stream()
                             .sorted(Comparator.comparing(Sponsor::getContributorAggregateYtd).reversed())
-                            .collect(Collectors.toList());
+                            .toList();
                 }
             }
         } else {

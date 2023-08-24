@@ -92,7 +92,7 @@ public class SenatorResponse {
     @JsonProperty(value = "state")
     private String state;
 
-//    @JsonProperty(value="fax")
+    //    @JsonProperty(value="fax")
     @JsonProperty(value = "senate_class")
     private Integer senateClass;
     @JsonProperty(value = "state_rank")
