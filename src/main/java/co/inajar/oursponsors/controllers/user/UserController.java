@@ -91,7 +91,7 @@ public class UserController {
             var userUpdate = userManager.createOrUpdateUser(data, user);
             response = new UserResponse(userUpdate);
         } else {
-            logger.debug(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID), CREATING_USER);
+            logger.info(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID), CREATING_USER);
 //            User user = new User();
 //            // default state & party
 //            user.setState("IL");
