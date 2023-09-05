@@ -11,6 +11,11 @@ public interface MembersManager {
 
     Optional<List<Senator>> getSenators(User user);
 
+    Optional<Senator> getSenatorById(Long id);
+
     Optional<List<Congress>> getCongress(User user);
+
+    Optional<Congress> getCongressById(Long id);
+
 
 }

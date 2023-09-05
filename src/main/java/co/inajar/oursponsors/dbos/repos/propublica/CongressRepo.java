@@ -11,7 +11,6 @@ import java.util.Optional;
 @Repository
 @Transactional(readOnly = true)
 public interface CongressRepo extends JpaRepository<Congress, Long> {
-
     Optional<Congress> findFirstCongressByProPublicaId(String proPublicaId);
 
     Optional<List<Congress>> findCongressesByState(String state);
@@ -19,5 +18,7 @@ public interface CongressRepo extends JpaRepository<Congress, Long> {
     Optional<List<Congress>> findCongressesByParty(String party);
 
     Optional<List<Congress>> findCongressesByStateAndParty(String state, String party);
+
+    Optional<Congress> findCongressById(Long id);
 }
 

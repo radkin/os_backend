@@ -4,6 +4,7 @@ import co.inajar.oursponsors.dbos.entities.SponsorSenator;
 import co.inajar.oursponsors.dbos.entities.campaigns.Committee;
 import co.inajar.oursponsors.dbos.entities.campaigns.Donation;
 import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
+import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.dbos.repos.CommitteeRepo;
 import co.inajar.oursponsors.dbos.repos.SponsorSenatorsRepo;
@@ -14,7 +15,6 @@ import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
 import co.inajar.oursponsors.models.fec.MiniDonationResponse;
 import co.inajar.oursponsors.models.fec.SponsorResponse;
 import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
-import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.CommitteeResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -95,29 +95,48 @@ public class CommitteesApiImpl implements CommitteesApiManager {
     }
 
     @Override
-    public CampaignResponse getCampaignListResponse(CommitteeRequest data) {
-        var possibleSenator = Optional.of(senatorRepo.getById(data.getOsId()));
+    public CampaignResponse getSenatorCampaignListResponse(Senator senator) {
         CampaignResponse campaignResponse = new CampaignResponse();
-        if (possibleSenator.isPresent()) {
-            String cmte = getFecCommitteeIdFromProPublicaCandidateId(possibleSenator.get());
-            Committee committee = createCommittee(data, cmte);
-            Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee, data);
-            List<Sponsor> newSponsors = processDonorsAndGetNewSponsors(data, cmteFecDonors);
-            List<CommitteeResponse> committeeResponses = Stream.of(committee)
-                    .map(CommitteeResponse::new)
-                    .toList();
-            List<SponsorResponse> sponsorResponses = newSponsors.parallelStream()
-                    .map(SponsorResponse::new)
-                    .toList();
-            List<MiniDonationResponse> donationResponses = newSponsors.parallelStream()
-                    .flatMap(sponsor -> sponsor.getDonations().stream())
-                    .map(MiniDonationResponse::new)
-                    .toList();
-            campaignResponse.setCommittees(committeeResponses);
-            campaignResponse.setSponsors(sponsorResponses);
-            campaignResponse.setDonations(donationResponses);
-            return campaignResponse;
-        }
+        String cmte = getFecCommitteeIdFromProPublicaCandidateId(senator.getFecCandidateId());
+        Committee committee = createSenatorCommittee(senator, cmte);
+        Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee, senator.getNextElection());
+        List<Sponsor> newSponsors = processDonorsAndGetNewSponsors(senator.getId(), senator.getProPublicaId(), cmteFecDonors);
+        List<CommitteeResponse> committeeResponses = Stream.of(committee)
+                .map(CommitteeResponse::new)
+                .toList();
+        List<SponsorResponse> sponsorResponses = newSponsors.parallelStream()
+                .map(SponsorResponse::new)
+                .toList();
+        List<MiniDonationResponse> donationResponses = newSponsors.parallelStream()
+                .flatMap(sponsor -> sponsor.getDonations().stream())
+                .map(MiniDonationResponse::new)
+                .toList();
+        campaignResponse.setCommittees(committeeResponses);
+        campaignResponse.setSponsors(sponsorResponses);
+        campaignResponse.setDonations(donationResponses);
+        return campaignResponse;
+    }
+
+    @Override
+    public CampaignResponse getCongressCampaignListResponse(Congress congress) {
+        CampaignResponse campaignResponse = new CampaignResponse();
+        String cmte = getFecCommitteeIdFromProPublicaCandidateId(congress.getFecCandidateId());
+        Committee committee = createCongressCommittee(congress, cmte);
+        Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee, congress.getNextElection());
+        List<Sponsor> newSponsors = processDonorsAndGetNewSponsors(congress.getId(), congress.getProPublicaId(), cmteFecDonors);
+        List<CommitteeResponse> committeeResponses = Stream.of(committee)
+                .map(CommitteeResponse::new)
+                .toList();
+        List<SponsorResponse> sponsorResponses = newSponsors.parallelStream()
+                .map(SponsorResponse::new)
+                .toList();
+        List<MiniDonationResponse> donationResponses = newSponsors.parallelStream()
+                .flatMap(sponsor -> sponsor.getDonations().stream())
+                .map(MiniDonationResponse::new)
+                .toList();
+        campaignResponse.setCommittees(committeeResponses);
+        campaignResponse.setSponsors(sponsorResponses);
+        campaignResponse.setDonations(donationResponses);
         return campaignResponse;
     }
 
@@ -154,19 +173,17 @@ public class CommitteesApiImpl implements CommitteesApiManager {
         return new ReactorClientHttpConnector(HttpClient.from(TcpClient.newConnection()));
     }
 
-    private String getFecCommitteeIdFromProPublicaCandidateId(Senator senator) {
+    private String getFecCommitteeIdFromProPublicaCandidateId(String fecCandidateId) {
         // https://api.open.fec.gov/v1/candidates/search/?page=1&per_page=20
         // &candidate_id=S2CA00955&sort=name&sort_hide_null=false
         // &sort_null_only=false&sort_nulls_last=false&api_key=DEMO_KEY
 
         var path = "/v1/candidates/search";
-        String candidateId = "S2CA00955";
-
         var webClient = getClient().get()
                 .uri(uriBuilder -> uriBuilder.path(path)
                         .queryParam("page", "1")
                         .queryParam("per_page", 20)
-                        .queryParam("candidate_id", candidateId)
+                        .queryParam("candidate_id", fecCandidateId)
                         .queryParam("sort", "name")
                         .queryParam("sort_hide_null", false)
                         .queryParam("sort_null_only", false)
@@ -188,29 +205,41 @@ public class CommitteesApiImpl implements CommitteesApiManager {
         return "";
     }
 
-    private Committee createCommittee(CommitteeRequest data, String cmte) {
+    private Committee createSenatorCommittee(Senator senator, String cmte) {
         var committee = new Committee();
-        committee.setPpId(data.getPpId());
-        committee.setTwoYearTransactionPeriod(data.getTwoYearTransactionPeriod());
+        committee.setPpId(senator.getProPublicaId());
+        committee.setTwoYearTransactionPeriod(calcTwoYearTransactionPeriod(senator.getNextElection()));
         committee.setFecCommitteeId(cmte);
         return committeeRepo.save(committee);
     }
 
-    private Map<String, List<FecCommitteeDonor>> fetchCmteFecDonors(Committee committee, CommitteeRequest data) {
+    private Committee createCongressCommittee(Congress congress, String cmte) {
+        var committee = new Committee();
+        committee.setPpId(congress.getProPublicaId());
+        committee.setTwoYearTransactionPeriod(calcTwoYearTransactionPeriod(congress.getNextElection()));
+        committee.setFecCommitteeId(cmte);
+        return committeeRepo.save(committee);
+    }
+
+    private Integer calcTwoYearTransactionPeriod(String nextElection) {
+        return Integer.parseInt(nextElection) - 2;
+    }
+
+    private Map<String, List<FecCommitteeDonor>> fetchCmteFecDonors(Committee committee, String nextElection) {
         var donorMap = new HashMap<String, List<FecCommitteeDonor>>();
-        var donors = getFecCommitteeDonors(committee.getFecCommitteeId(), data.getTwoYearTransactionPeriod());
+        var donors = getFecCommitteeDonors(committee.getFecCommitteeId(), calcTwoYearTransactionPeriod(nextElection));
         donorMap.put("", donors);
         return donorMap;
     }
 
-    private List<Sponsor> processDonorsAndGetNewSponsors(CommitteeRequest data, Map<String, List<FecCommitteeDonor>> cmteFecDonors) {
+    private List<Sponsor> processDonorsAndGetNewSponsors(Long osId, String proPublicaId, Map<String, List<FecCommitteeDonor>> cmteFecDonors) {
         List<Sponsor> newSponsors = new ArrayList<>();
         List<Donation> donations = new ArrayList<>();
         cmteFecDonors.forEach((cmte, donorList) -> donorList.forEach(d -> {
             Optional<Sponsor> possibleExistingSponsor = getSponsorByName(d.getContributorName());
             Sponsor sponsor;
             if (possibleExistingSponsor.isEmpty()) {
-                sponsor = mapFecDonorToSponsor(d, data.getChamber(), data.getOsId());
+                sponsor = mapFecDonorToSponsor(d, osId);
                 newSponsors.add(sponsor);
             } else {
                 BigDecimal possibleExistingSponsorYtd = possibleExistingSponsor.get().getContributorAggregateYtd();
@@ -220,7 +249,7 @@ public class CommitteesApiImpl implements CommitteesApiManager {
                     sponsor.setContributorAggregateYtd(possibleExistingSponsorYtd);
                 }
             }
-            donations.add(mapFecDonorToDonation(d, sponsor, data.getPpId()));
+            donations.add(mapFecDonorToDonation(d, sponsor, proPublicaId));
         }));
         return newSponsors;
     }
@@ -248,7 +277,8 @@ public class CommitteesApiImpl implements CommitteesApiManager {
         return Optional.ofNullable(sponsorsRepo.findByContributorName(name));
     }
 
-    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, String chamber, Long osId) {
+    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, Long osId) {
+        var chamber = "senator";
         var newSponsor = new Sponsor();
         var receiptAmount = new BigDecimal(donor.getContributionReceiptAmount());
         newSponsor.setContributionReceiptAmount(receiptAmount);
