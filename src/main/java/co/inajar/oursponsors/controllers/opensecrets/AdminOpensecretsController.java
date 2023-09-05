@@ -54,7 +54,7 @@ public class AdminOpensecretsController {
     public ResponseEntity<CampaignResponse> downloadCampaign(@RequestBody CommitteeRequest data) {
         var response = new CampaignResponse();
         var httpStatus = HttpStatus.OK;
-        response = candidatesApiManager.getCampaignListResponse(data);
+        response = candidatesApiManager.getPresidentialCampaignListResponse(data);
 
         return new ResponseEntity<>(response, httpStatus);
     }

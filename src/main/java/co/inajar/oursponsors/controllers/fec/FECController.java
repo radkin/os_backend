@@ -1,4 +1,4 @@
-package co.inajar.oursponsors.controllers;
+package co.inajar.oursponsors.controllers.fec;
 
 import co.inajar.oursponsors.models.fec.SponsorRequest;
 import co.inajar.oursponsors.models.fec.SponsorResponse;
