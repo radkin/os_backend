@@ -1,5 +1,6 @@
 package co.inajar.oursponsors.services.fec;
 
+import co.inajar.oursponsors.dbos.entities.SponsorCongress;
 import co.inajar.oursponsors.dbos.entities.SponsorSenator;
 import co.inajar.oursponsors.dbos.entities.campaigns.Committee;
 import co.inajar.oursponsors.dbos.entities.campaigns.Donation;
@@ -7,9 +8,11 @@ import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.dbos.repos.CommitteeRepo;
+import co.inajar.oursponsors.dbos.repos.SponsorCongressRepo;
 import co.inajar.oursponsors.dbos.repos.SponsorSenatorsRepo;
 import co.inajar.oursponsors.dbos.repos.fec.DonationRepo;
 import co.inajar.oursponsors.dbos.repos.fec.SponsorsRepo;
+import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
 import co.inajar.oursponsors.models.fec.MiniDonationResponse;
@@ -44,6 +47,7 @@ public class CommitteesApiImpl implements CommitteesApiManager {
 
     private static final String INVALID_CHAMBER_NAME = "Invalid chamber please use either senator or congress";
     private static final String SENATOR_ID_NOT_FOUND = "No Senator found by ID: {}";
+    private static final String CONGRESS_ID_NOT_FOUND = "No Member of Congress found by ID: {}";
     private final Logger logger = LoggerFactory.getLogger(CommitteesApiImpl.class);
     @Value("${fec.inajar.token.secret}")
     private String fecApiKey;
@@ -56,7 +60,11 @@ public class CommitteesApiImpl implements CommitteesApiManager {
     @Autowired
     private SenatorRepo senatorRepo;
     @Autowired
+    private CongressRepo congressRepo;
+    @Autowired
     private SponsorSenatorsRepo sponsorSenatorsRepo;
+    @Autowired
+    private SponsorCongressRepo sponsorCongressRepo;
 
     @Override
     public List<FecCommitteeDonor> getFecCommitteeDonors(String committeeId, Integer twoYearTransactionPeriod) {
@@ -100,7 +108,7 @@ public class CommitteesApiImpl implements CommitteesApiManager {
         String cmte = getFecCommitteeIdFromProPublicaCandidateId(senator.getFecCandidateId());
         Committee committee = createSenatorCommittee(senator, cmte);
         Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee, senator.getNextElection());
-        List<Sponsor> newSponsors = processDonorsAndGetNewSponsors(senator.getId(), senator.getProPublicaId(), cmteFecDonors);
+        List<Sponsor> newSponsors = processDonorsAndGetNewSponsors("senator", senator.getId(), senator.getProPublicaId(), cmteFecDonors);
         List<CommitteeResponse> committeeResponses = Stream.of(committee)
                 .map(CommitteeResponse::new)
                 .toList();
@@ -123,7 +131,7 @@ public class CommitteesApiImpl implements CommitteesApiManager {
         String cmte = getFecCommitteeIdFromProPublicaCandidateId(congress.getFecCandidateId());
         Committee committee = createCongressCommittee(congress, cmte);
         Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee, congress.getNextElection());
-        List<Sponsor> newSponsors = processDonorsAndGetNewSponsors(congress.getId(), congress.getProPublicaId(), cmteFecDonors);
+        List<Sponsor> newSponsors = processDonorsAndGetNewSponsors("congress", congress.getId(), congress.getProPublicaId(), cmteFecDonors);
         List<CommitteeResponse> committeeResponses = Stream.of(committee)
                 .map(CommitteeResponse::new)
                 .toList();
@@ -232,14 +240,14 @@ public class CommitteesApiImpl implements CommitteesApiManager {
         return donorMap;
     }
 
-    private List<Sponsor> processDonorsAndGetNewSponsors(Long osId, String proPublicaId, Map<String, List<FecCommitteeDonor>> cmteFecDonors) {
+    private List<Sponsor> processDonorsAndGetNewSponsors(String chamber, Long osId, String proPublicaId, Map<String, List<FecCommitteeDonor>> cmteFecDonors) {
         List<Sponsor> newSponsors = new ArrayList<>();
         List<Donation> donations = new ArrayList<>();
         cmteFecDonors.forEach((cmte, donorList) -> donorList.forEach(d -> {
             Optional<Sponsor> possibleExistingSponsor = getSponsorByName(d.getContributorName());
             Sponsor sponsor;
             if (possibleExistingSponsor.isEmpty()) {
-                sponsor = mapFecDonorToSponsor(d, osId);
+                sponsor = mapFecDonorToSponsor(d, osId, chamber);
                 newSponsors.add(sponsor);
             } else {
                 BigDecimal possibleExistingSponsorYtd = possibleExistingSponsor.get().getContributorAggregateYtd();
@@ -277,8 +285,7 @@ public class CommitteesApiImpl implements CommitteesApiManager {
         return Optional.ofNullable(sponsorsRepo.findByContributorName(name));
     }
 
-    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, Long osId) {
-        var chamber = "senator";
+    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, Long osId, String chamber) {
         var newSponsor = new Sponsor();
         var receiptAmount = new BigDecimal(donor.getContributionReceiptAmount());
         newSponsor.setContributionReceiptAmount(receiptAmount);
@@ -310,6 +317,20 @@ public class CommitteesApiImpl implements CommitteesApiManager {
                 sponsorSenatorsRepo.save(sponsorSenator);
             } else {
                 logger.info(SENATOR_ID_NOT_FOUND, osId);
+            }
+        } else if (chamber.equals("congress")) {
+            var possibleCongress = Optional.of(congressRepo.getById(osId));
+            if (possibleCongress.isPresent()) {
+                // add new sponsor
+                Congress congress = possibleCongress.get();
+                sponsorsRepo.save(newSponsor);
+                // add sponsorCongress ManyToMany
+                SponsorCongress sponsorCongress = new SponsorCongress();
+                sponsorCongress.setSponsor(newSponsor);
+                sponsorCongress.setCongress(congress);
+                sponsorCongressRepo.save(sponsorCongress);
+            } else {
+                logger.info(CONGRESS_ID_NOT_FOUND, osId);
             }
         } else {
             logger.info(INVALID_CHAMBER_NAME);

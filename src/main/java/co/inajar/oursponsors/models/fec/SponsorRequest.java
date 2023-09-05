@@ -11,7 +11,7 @@ public class SponsorRequest {
     private String chamber;
 
     // Senator or Congress ID
-    @JsonAlias(value = "id")
-    private Long id;
+    @JsonAlias(value = "os_id")
+    private Long osId;
 
 }
