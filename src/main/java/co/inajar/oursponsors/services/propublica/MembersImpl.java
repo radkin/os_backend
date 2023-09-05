@@ -19,10 +19,8 @@ public class MembersImpl implements MembersManager {
 
     @Autowired
     private SenatorRepo senatorRepo;
-
     @Autowired
     private CongressRepo congressRepo;
-
     @Autowired
     private UserManager userManager;
 
@@ -41,6 +39,11 @@ public class MembersImpl implements MembersManager {
     }
 
     @Override
+    public Optional<Senator> getSenatorById(Long id) {
+        return senatorRepo.findSenatorById(id);
+    }
+
+    @Override
     public Optional<List<Congress>> getCongress(User user) {
         var preferences = userManager.getPreferencesByUserId(user.getId());
         if (Boolean.TRUE.equals(preferences.getMyStateOnly()) && Boolean.TRUE.equals(!preferences.getMyPartyOnly()))
@@ -52,4 +55,8 @@ public class MembersImpl implements MembersManager {
         return Optional.of(congressRepo.findAll());
     }
 
+    @Override
+    public Optional<Congress> getCongressById(Long id) {
+        return congressRepo.findCongressById(id);
+    }
 }

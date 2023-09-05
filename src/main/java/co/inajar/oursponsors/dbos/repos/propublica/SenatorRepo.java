@@ -11,7 +11,6 @@ import java.util.Optional;
 @Repository
 @Transactional(readOnly = true)
 public interface SenatorRepo extends JpaRepository<Senator, Long> {
-
     Optional<Senator> findFirstSenatorByProPublicaId(String proPublicaId);
 
     Optional<List<Senator>> findSenatorsByState(String state);
@@ -19,5 +18,7 @@ public interface SenatorRepo extends JpaRepository<Senator, Long> {
     Optional<List<Senator>> findSenatorsByParty(String party);
 
     Optional<List<Senator>> findSenatorsByStateAndParty(String state, String party);
+
+    Optional<Senator> findSenatorById(Long id);
 }
 
