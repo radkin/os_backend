@@ -65,7 +65,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     private static final String SENATOR_ID_NOT_FOUND = "No Senator found by ID: {}";
     private static final String INVALID_CHAMBER_NAME = "Invalid chamber please use either senator or congress";
     // temporary
-    private static final String NON_PRESIDENTIAL_CANDIDATE = "Cannot scrape opensecrets for non-presidential candidate fundraising data";
+//    private static final String NON_PRESIDENTIAL_CANDIDATE = "Cannot scrape opensecrets for non-presidential candidate fundraising data";
     private final Logger logger = LoggerFactory.getLogger(CandidatesApiImpl.class);
     @Autowired
     private SectorRepo sectorRepo;
@@ -311,14 +311,11 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return contributorsList;
     }
 
+    // This only works for the following Candidates from 2020:
+    // PP_ids = H000273, B001267, B001288, G000555, K000367, S000033, W000817
     @Override
-    public CampaignResponse getCampaignListResponse(CommitteeRequest data) {
-        List<String> cmtes = new ArrayList<>();
-        if (Boolean.TRUE.equals(isPresidentialCandidate(data.getTwoYearTransactionPeriod()))) {
-            cmtes = scrapeCmteUrls(data);
-        } else {
-            logger.info(NON_PRESIDENTIAL_CANDIDATE);
-        }
+    public CampaignResponse getPresidentialCampaignListResponse(CommitteeRequest data) {
+        List<String> cmtes = scrapeCmteUrls(data);
 
         List<Committee> committees = cmtes.parallelStream()
                 .map(cmte -> createCommittee(data, cmte))
@@ -348,8 +345,12 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return campaignResponse;
     }
 
-    private Boolean isPresidentialCandidate(Integer year) {
-        return year % 4 == 0;
+    // This works for everyone
+
+
+    @Override
+    public List<Committee> getCommittees() {
+        return committeeRepo.findAll();
     }
 
     private List<String> scrapeCmteUrls(CommitteeRequest data) {
@@ -484,11 +485,6 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         newDonation.setSponsor(sponsor);
         newDonation.setPpId(ppId);
         return donationRepo.save(newDonation);
-    }
-
-    @Override
-    public List<Committee> getCommittees() {
-        return committeeRepo.findAll();
     }
 
     private Contributor createContributor(OpenSecretsContributor openSecretsContributor) {
