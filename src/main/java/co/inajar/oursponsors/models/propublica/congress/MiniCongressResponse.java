@@ -1,6 +1,6 @@
-package co.inajar.oursponsors.models.propublica.senator;
+package co.inajar.oursponsors.models.propublica.congress;
 
-import co.inajar.oursponsors.dbos.entities.chambers.Senator;
+import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.models.fec.SponsorRequest;
 import co.inajar.oursponsors.models.fec.SponsorResponse;
 import co.inajar.oursponsors.services.fec.CommitteesManager;
@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Data
-public class MiniSenatorResponse {
+public class MiniCongressResponse {
 
     private static final String BASE_URL = "https://theunitedstates.io/images/congress/original";
     private CommitteesManager committeesManager;
@@ -34,21 +34,21 @@ public class MiniSenatorResponse {
     @JsonProperty(value = "sponsors")
     private Set<SponsorResponse> sponsors;
 
-    public MiniSenatorResponse(Senator senator, CommitteesManager committeesManager) {
-        id = senator.getId();
-        title = senator.getTitle();
-        firstName = senator.getFirstName();
-        lastName = senator.getLastName();
-        party = senator.getParty();
-        state = senator.getState();
-        imageUrl = BASE_URL + "/" + senator.getProPublicaId() + ".jpg";
+    public MiniCongressResponse(Congress congress, CommitteesManager committeesManager) {
+        id = congress.getId();
+        title = congress.getTitle();
+        firstName = congress.getFirstName();
+        lastName = congress.getLastName();
+        party = congress.getParty();
+        state = congress.getState();
+        imageUrl = BASE_URL + "/" + congress.getProPublicaId() + ".jpg";
         this.committeesManager = committeesManager;
 
         sponsors = new HashSet<>();
 
         SponsorRequest data = new SponsorRequest();
-        data.setChamber("senator");
-        data.setOsId(senator.getId());
+        data.setChamber("congress");
+        data.setOsId(congress.getId());
 
         var possibleSponsors = Optional.ofNullable(committeesManager.getSponsors(data));
         if (possibleSponsors.isPresent()) {
@@ -59,4 +59,5 @@ public class MiniSenatorResponse {
             sponsors.addAll(set);
         }
     }
+
 }
