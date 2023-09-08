@@ -1,7 +1,9 @@
 package co.inajar.oursponsors.controllers.propublica;
 
 import co.inajar.oursponsors.models.propublica.congress.CongressResponse;
+import co.inajar.oursponsors.models.propublica.senator.MiniSenatorResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
+import co.inajar.oursponsors.services.fec.CommitteesManager;
 import co.inajar.oursponsors.services.propublica.MembersManager;
 import co.inajar.oursponsors.services.user.UserManager;
 import org.slf4j.Logger;
@@ -33,6 +35,9 @@ public class ProPublicaController {
     @Autowired
     private MembersManager membersManager;
 
+    @Autowired
+    private CommitteesManager committeesManager;
+
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "get_senators")
     public ResponseEntity<List<SenatorResponse>> getSenators(@RequestHeader Map<String, String> headers) {
@@ -46,6 +51,28 @@ public class ProPublicaController {
             if (possibleSenators.isPresent()) {
                 var list = possibleSenators.get().parallelStream()
                         .map(SenatorResponse::new)
+                        .toList();
+                response.addAll(list);
+            }
+        } else {
+            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+        }
+        return new ResponseEntity<>(response, httpResponse);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "get_mini_senators")
+    public ResponseEntity<List<MiniSenatorResponse>> getMiniSenators(@RequestHeader Map<String, String> headers) {
+        var response = new ArrayList<MiniSenatorResponse>();
+        var httpResponse = HttpStatus.OK;
+
+        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        if (possibleUser.isPresent()) {
+            var user = possibleUser.get();
+            var possibleSenators = membersManager.getSenators(user);
+            if (possibleSenators.isPresent()) {
+                var list = possibleSenators.get().parallelStream()
+                        .map(senator -> new MiniSenatorResponse(senator, committeesManager))
                         .toList();
                 response.addAll(list);
             }
