@@ -15,7 +15,11 @@ import java.util.stream.Collectors;
 @Data
 public class MiniCongressResponse {
 
+    private static final String REPTYPE = "congress";
+
     private static final String BASE_URL = "https://theunitedstates.io/images/congress/original";
+    @JsonProperty(value = "rep_type")
+    private String repType;
     private CommitteesManager committeesManager;
     @JsonProperty(value = "id")
     private Long id;
@@ -35,6 +39,7 @@ public class MiniCongressResponse {
     private Set<SponsorResponse> sponsors;
 
     public MiniCongressResponse(Congress congress, CommitteesManager committeesManager) {
+        repType = REPTYPE;
         id = congress.getId();
         title = congress.getTitle();
         firstName = congress.getFirstName();

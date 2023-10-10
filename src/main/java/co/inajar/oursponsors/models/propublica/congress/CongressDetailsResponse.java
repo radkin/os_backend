@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 public class CongressDetailsResponse {
-
+    
     @JsonProperty(value = "congress")
     private CongressResponse congress;
     @JsonProperty(value = "sectors")
