@@ -19,33 +19,26 @@ public class UserRepoTests {
     private UserRepo userRepo;
 
     @Test
-    public void UserRepo_SaveAll_ReturnSavedUser() {
+    public void UserRepo_SaveAll_ReturnsSavedUser() {
 
         String token = TokenGenerator.generateSHAToken();
         String randomName = NameGenerator.generateRandomName();
         String[] name = randomName.split(" ");
 
-        // arrange
         User user = User.builder()
                 .firstName(name[0])
                 .lastName(name[1])
                 .apiKey(token)
                 .build();
 
-
-        // act
-
         User savedUser = userRepo.save(user);
-
-
-        // assert
-
+        
         Assertions.assertThat(savedUser).isNotNull();
         Assertions.assertThat(savedUser.getId()).isGreaterThan(0);
     }
 
     @Test
-    public void UserRepo_GetAll_ReturnMoreThanOneUser() {
+    public void UserRepo_GetAll_ReturnsMoreThanOneUser() {
 
         String token1 = TokenGenerator.generateSHAToken();
         String randomName = NameGenerator.generateRandomName();
@@ -77,7 +70,7 @@ public class UserRepoTests {
     }
 
     @Test
-    public void UserRepo_FindById_ReturnUser() {
+    public void UserRepo_FindById_ReturnsUser() {
 
         String token = TokenGenerator.generateSHAToken();
         String randomName = NameGenerator.generateRandomName();
@@ -97,7 +90,7 @@ public class UserRepoTests {
     }
 
     @Test
-    public void UserRepo_FindUserByApiKey_ReturnUserUniqueResult() {
+    public void UserRepo_FindUserByApiKey_ReturnsUserUniqueResult() {
 
         String token = TokenGenerator.generateSHAToken();
         String randomName = NameGenerator.generateRandomName();
@@ -117,7 +110,7 @@ public class UserRepoTests {
     }
 
     @Test
-    public void UserRepo_FindUserByGoogleUid_ReturnUserUniqueResult() {
+    public void UserRepo_FindUserByGoogleUid_ReturnsUserUniqueResult() {
 
         String token = FiftyCharacterGenerator.generateToken();
         String randomName = NameGenerator.generateRandomName();

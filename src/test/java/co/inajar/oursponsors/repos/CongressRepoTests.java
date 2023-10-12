@@ -18,7 +18,7 @@ public class CongressRepoTests {
     private CongressRepo congressRepo;
 
     @Test
-    public void CongressRepo_findCongressById_ReturnCongress() {
+    public void CongressRepo_findCongressById_ReturnsCongress() {
 
         String randomName = NameGenerator.generateRandomName();
         String[] name = randomName.split(" ");
@@ -37,7 +37,7 @@ public class CongressRepoTests {
     }
 
     @Test
-    public void CongressRepo_findFirstCongressByProPublicaId_ReturnOneCongress() {
+    public void CongressRepo_findFirstCongressByProPublicaId_ReturnsOneCongress() {
 
         String randomName = NameGenerator.generateRandomName();
         String[] name = randomName.split(" ");
@@ -58,7 +58,7 @@ public class CongressRepoTests {
     }
 
     @Test
-    public void CongressRepo_findCongressesByState_ReturnCongress() {
+    public void CongressRepo_findCongressesByState_ReturnsCongress() {
 
         String randomName1 = NameGenerator.generateRandomName();
         String[] name1 = randomName1.split(" ");
@@ -90,7 +90,7 @@ public class CongressRepoTests {
     }
 
     @Test
-    public void CongressRepo_findCongressesByParty_ReturnCongresss() {
+    public void CongressRepo_findCongressesByParty_ReturnsCongresss() {
 
         String randomName1 = NameGenerator.generateRandomName();
         String[] name1 = randomName1.split(" ");
@@ -123,7 +123,7 @@ public class CongressRepoTests {
 
 
     @Test
-    public void CongressRepo_findCongressesByStateAndParty_ReturnCongress() {
+    public void CongressRepo_findCongressesByStateAndParty_ReturnsCongress() {
 
         String randomName1 = NameGenerator.generateRandomName();
         String[] name1 = randomName1.split(" ");

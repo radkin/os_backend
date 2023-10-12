@@ -8,6 +8,7 @@ import co.inajar.oursponsors.models.propublica.senator.SenatorDetailsResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
 import co.inajar.oursponsors.services.fec.CommitteesManager;
 import co.inajar.oursponsors.services.propublica.MembersManager;
+import co.inajar.oursponsors.services.user.PreferencesManager;
 import co.inajar.oursponsors.services.user.UserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,9 @@ public class ProPublicaController {
 
     @Autowired
     private CommitteesManager committeesManager;
+
+    @Autowired
+    private PreferencesManager preferencesManager;
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "get_senators")
@@ -68,7 +72,7 @@ public class ProPublicaController {
 
         var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
         if (possibleUser.isPresent()) {
-            var preferences = userManager.getPreferencesByUserId(possibleUser.get().getId());
+            var preferences = preferencesManager.getPreferencesByUserId(possibleUser.get().getId());
             var possibleSenator = membersManager.getSenatorById(Long.valueOf(id));
             if (possibleSenator.isPresent()) {
                 var senator = possibleSenator.get();
@@ -164,7 +168,7 @@ public class ProPublicaController {
 
         var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
         if (possibleUser.isPresent()) {
-            var preferences = userManager.getPreferencesByUserId(possibleUser.get().getId());
+            var preferences = preferencesManager.getPreferencesByUserId(possibleUser.get().getId());
             var possibleCongress = membersManager.getCongressById(Long.valueOf(id));
             if (possibleCongress.isPresent()) {
                 var congress = possibleCongress.get();

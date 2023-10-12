@@ -14,6 +14,7 @@ import co.inajar.oursponsors.models.propublica.senator.SenatorDetailsResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
 import co.inajar.oursponsors.models.user.PreferencesResponse;
 import co.inajar.oursponsors.services.opensecrets.CandidatesManager;
+import co.inajar.oursponsors.services.user.PreferencesManager;
 import co.inajar.oursponsors.services.user.UserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,11 +36,14 @@ public class MembersImpl implements MembersManager {
     @Autowired
     private CandidatesManager candidatesManager;
 
+    @Autowired
+    private PreferencesManager preferencesManager;
+
     private Logger logger = LoggerFactory.getLogger(MembersApiImpl.class);
 
     @Override
     public Optional<List<Senator>> getSenators(User user) {
-        var preferences = userManager.getPreferencesByUserId(user.getId());
+        var preferences = preferencesManager.getPreferencesByUserId(user.getId());
         if (Boolean.TRUE.equals(preferences.getMyStateOnly()) && Boolean.TRUE.equals(!preferences.getMyPartyOnly()))
             return senatorRepo.findSenatorsByState(user.getState());
         if (Boolean.TRUE.equals(preferences.getMyPartyOnly()) && Boolean.TRUE.equals(!preferences.getMyStateOnly()))
@@ -56,7 +60,7 @@ public class MembersImpl implements MembersManager {
 
     @Override
     public Optional<List<Congress>> getCongress(User user) {
-        var preferences = userManager.getPreferencesByUserId(user.getId());
+        var preferences = preferencesManager.getPreferencesByUserId(user.getId());
         if (Boolean.TRUE.equals(preferences.getMyStateOnly()) && Boolean.TRUE.equals(!preferences.getMyPartyOnly()))
             return congressRepo.findCongressesByState(user.getState());
         if (Boolean.TRUE.equals(preferences.getMyPartyOnly()) && Boolean.TRUE.equals(!preferences.getMyStateOnly()))
