@@ -2,7 +2,7 @@ package co.inajar.oursponsors.repos;
 
 import co.inajar.oursponsors.dbos.entities.User;
 import co.inajar.oursponsors.dbos.repos.UserRepo;
-import co.inajar.oursponsors.helpers.GoogleUidGenerator;
+import co.inajar.oursponsors.helpers.FiftyCharacterGenerator;
 import co.inajar.oursponsors.helpers.NameGenerator;
 import co.inajar.oursponsors.helpers.TokenGenerator;
 import org.assertj.core.api.Assertions;
@@ -119,7 +119,7 @@ public class UserRepoTests {
     @Test
     public void UserRepo_FindUserByGoogleUid_ReturnUserUniqueResult() {
 
-        String token = GoogleUidGenerator.generateToken();
+        String token = FiftyCharacterGenerator.generateToken();
         String randomName = NameGenerator.generateRandomName();
         String[] name = randomName.split(" ");
 

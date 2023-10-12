@@ -2,7 +2,7 @@ package co.inajar.oursponsors.helpers;
 
 import java.security.SecureRandom;
 
-public class GoogleUidGenerator {
+public class FiftyCharacterGenerator {
 
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final int TOKEN_LENGTH = 50; // Set the desired length
