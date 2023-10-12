@@ -2,6 +2,8 @@ package co.inajar.oursponsors.repos;
 
 import co.inajar.oursponsors.dbos.entities.User;
 import co.inajar.oursponsors.dbos.repos.UserRepo;
+import co.inajar.oursponsors.helpers.GoogleUidGenerator;
+import co.inajar.oursponsors.helpers.NameGenerator;
 import co.inajar.oursponsors.helpers.TokenGenerator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -20,11 +22,13 @@ public class UserRepoTests {
     public void UserRepo_SaveAll_ReturnSavedUser() {
 
         String token = TokenGenerator.generateSHAToken();
+        String randomName = NameGenerator.generateRandomName();
+        String[] name = randomName.split(" ");
 
         // arrange
         User user = User.builder()
-                .firstName("fred")
-                .lastName("flintstone")
+                .firstName(name[0])
+                .lastName(name[1])
                 .apiKey(token)
                 .build();
 
@@ -44,17 +48,22 @@ public class UserRepoTests {
     public void UserRepo_GetAll_ReturnMoreThanOneUser() {
 
         String token1 = TokenGenerator.generateSHAToken();
+        String randomName = NameGenerator.generateRandomName();
+        String[] name = randomName.split(" ");
+
         String token2 = TokenGenerator.generateSHAToken();
+        String randomName2 = NameGenerator.generateRandomName();
+        String[] name2 = randomName2.split(" ");
 
         User user = User.builder()
-                .firstName("fred")
-                .lastName("flintstone")
+                .firstName(name[0])
+                .lastName(name[1])
                 .apiKey(token1)
                 .build();
 
         User user2 = User.builder()
-                .firstName("fred")
-                .lastName("flintstone")
+                .firstName(name2[0])
+                .lastName(name2[1])
                 .apiKey(token2)
                 .build();
 
@@ -71,10 +80,12 @@ public class UserRepoTests {
     public void UserRepo_FindById_ReturnUser() {
 
         String token = TokenGenerator.generateSHAToken();
+        String randomName = NameGenerator.generateRandomName();
+        String[] name = randomName.split(" ");
 
         User user = User.builder()
-                .firstName("fred")
-                .lastName("flintstone")
+                .firstName(name[0])
+                .lastName(name[1])
                 .apiKey(token)
                 .build();
 
@@ -86,14 +97,36 @@ public class UserRepoTests {
     }
 
     @Test
-    public void UserRepo_FindUserByApiKey_ReturnUser() {
+    public void UserRepo_FindUserByApiKey_ReturnUserUniqueResult() {
 
         String token = TokenGenerator.generateSHAToken();
+        String randomName = NameGenerator.generateRandomName();
+        String[] name = randomName.split(" ");
 
         User user = User.builder()
-                .firstName("fred")
-                .lastName("flintstone")
+                .firstName(name[0])
+                .lastName(name[1])
                 .apiKey(token)
+                .build();
+
+        userRepo.save(user);
+
+        User foundUser = userRepo.findUserByApiKey(user.getApiKey()).get();
+
+        Assertions.assertThat(foundUser.getApiKey()).isEqualTo(user.getApiKey());
+    }
+
+    @Test
+    public void UserRepo_FindUserByGoogleUid_ReturnUserUniqueResult() {
+
+        String token = GoogleUidGenerator.generateToken();
+        String randomName = NameGenerator.generateRandomName();
+        String[] name = randomName.split(" ");
+
+        User user = User.builder()
+                .firstName(name[0])
+                .lastName(name[1])
+                .googleUid(token)
                 .build();
 
         userRepo.save(user);
