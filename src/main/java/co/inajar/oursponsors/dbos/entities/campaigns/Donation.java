@@ -1,12 +1,18 @@
 package co.inajar.oursponsors.dbos.entities.campaigns;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "donations")
 @Data
 public class Donation {
