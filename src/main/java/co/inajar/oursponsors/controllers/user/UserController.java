@@ -5,7 +5,7 @@ import co.inajar.oursponsors.models.user.PreferencesRequest;
 import co.inajar.oursponsors.models.user.PreferencesResponse;
 import co.inajar.oursponsors.models.user.UserRequest;
 import co.inajar.oursponsors.models.user.UserResponse;
-import co.inajar.oursponsors.services.user.PreferencesManager;
+import co.inajar.oursponsors.services.preferences.PreferencesManager;
 import co.inajar.oursponsors.services.user.UserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -18,7 +18,7 @@ public class SenatorRepoTests {
     private SenatorRepo senatorRepo;
 
     @Test
-    public void SenatorRepo_findSenatorById_ReturnsSenator() {
+    public void SenatorRepo_FindSenatorById_ReturnsSenator() {
 
         String randomName = NameGenerator.generateRandomName();
         String[] name = randomName.split(" ");
@@ -37,7 +37,7 @@ public class SenatorRepoTests {
     }
 
     @Test
-    public void SenatorRepo_findFirstSenatorByProPublicaId_ReturnsOneSenator() {
+    public void SenatorRepo_FindFirstSenatorByProPublicaId_ReturnsOneSenator() {
 
         String randomName = NameGenerator.generateRandomName();
         String[] name = randomName.split(" ");
@@ -58,7 +58,7 @@ public class SenatorRepoTests {
     }
 
     @Test
-    public void SenatorRepo_findSenatorsByState_ReturnsSenators() {
+    public void SenatorRepo_FindSenatorsByState_ReturnsSenators() {
 
         String randomName1 = NameGenerator.generateRandomName();
         String[] name1 = randomName1.split(" ");
@@ -90,7 +90,7 @@ public class SenatorRepoTests {
     }
 
     @Test
-    public void SenatorRepo_findSenatorsByParty_ReturnsSenators() {
+    public void SenatorRepo_FindSenatorsByParty_ReturnsSenators() {
 
         String randomName1 = NameGenerator.generateRandomName();
         String[] name1 = randomName1.split(" ");
@@ -123,7 +123,7 @@ public class SenatorRepoTests {
 
 
     @Test
-    public void SenatorRepo_findSenatorsByStateAndParty_ReturnsSenators() {
+    public void SenatorRepo_FindSenatorsByStateAndParty_ReturnsSenators() {
 
         String randomName1 = NameGenerator.generateRandomName();
         String[] name1 = randomName1.split(" ");

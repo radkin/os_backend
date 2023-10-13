@@ -1,9 +1,9 @@
 package co.inajar.oursponsors.services.propublica;
 
+import co.inajar.oursponsors.dbos.entities.Preferences;
 import co.inajar.oursponsors.dbos.entities.User;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
-import co.inajar.oursponsors.dbos.entities.user.Preferences;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.opensecrets.contributor.SmallContributorResponse;
@@ -14,7 +14,7 @@ import co.inajar.oursponsors.models.propublica.senator.SenatorDetailsResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
 import co.inajar.oursponsors.models.user.PreferencesResponse;
 import co.inajar.oursponsors.services.opensecrets.CandidatesManager;
-import co.inajar.oursponsors.services.user.PreferencesManager;
+import co.inajar.oursponsors.services.preferences.PreferencesManager;
 import co.inajar.oursponsors.services.user.UserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

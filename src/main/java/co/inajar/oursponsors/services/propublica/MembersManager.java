@@ -1,9 +1,9 @@
 package co.inajar.oursponsors.services.propublica;
 
+import co.inajar.oursponsors.dbos.entities.Preferences;
 import co.inajar.oursponsors.dbos.entities.User;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
-import co.inajar.oursponsors.dbos.entities.user.Preferences;
 import co.inajar.oursponsors.models.propublica.congress.CongressDetailsResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorDetailsResponse;
 

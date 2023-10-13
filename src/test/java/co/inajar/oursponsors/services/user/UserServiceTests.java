@@ -1,7 +1,6 @@
 package co.inajar.oursponsors.services.user;
 
 import co.inajar.oursponsors.dbos.entities.User;
-import co.inajar.oursponsors.dbos.repos.PreferencesRepo;
 import co.inajar.oursponsors.dbos.repos.UserRepo;
 import co.inajar.oursponsors.helpers.NameGenerator;
 import co.inajar.oursponsors.helpers.TokenGenerator;
@@ -19,18 +18,11 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTests {
 
-
     @Mock
     private UserRepo userRepo;
 
-    @Mock
-    private PreferencesRepo preferencesRepo;
-
     @InjectMocks
     private UserManagerImpl userManager;
-
-    @InjectMocks
-    private PreferencesManagerImpl preferencesManager;
 
     @Test
     public void UserManager_CreateAndUpdateUser_ReturnsUserThenUpdates() {
