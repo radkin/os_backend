@@ -4,7 +4,7 @@ import co.inajar.oursponsors.dbos.entities.SponsorCongress;
 import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.repos.SponsorCongressRepo;
-import co.inajar.oursponsors.dbos.repos.fec.SponsorsRepo;
+import co.inajar.oursponsors.dbos.repos.fec.SponsorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.helpers.NameGenerator;
 import co.inajar.oursponsors.helpers.SponsorGenerator;
@@ -28,7 +28,7 @@ public class SponsorCongressRepoTests {
     private CongressRepo congressRepo;
 
     @Autowired
-    private SponsorsRepo sponsorsRepo;
+    private SponsorRepo sponsorRepo;
 
     @Autowired
     private EntityManager entityManager;
@@ -51,7 +51,7 @@ public class SponsorCongressRepoTests {
         // create associated sponsors
         List<Sponsor> sponsors = SponsorGenerator.generateCongressSponsors(congress);
         for (var sponsor : sponsors) {
-            sponsorsRepo.save(sponsor);
+            sponsorRepo.save(sponsor);
             SponsorCongress sponsorCongress = new SponsorCongress();
             sponsorCongress.setCongress(congress);
             sponsorCongress.setSponsor(sponsor);
@@ -68,7 +68,7 @@ public class SponsorCongressRepoTests {
                 .map(Sponsor::getId)
                 .toList();
         List<Sponsor> detachedSponsors = sponsorIds.parallelStream()
-                .map((s) -> sponsorsRepo.getById(s))
+                .map((s) -> sponsorRepo.getById(s))
                 .toList();
 
         List<Sponsor> foundSponsors = new ArrayList<>();

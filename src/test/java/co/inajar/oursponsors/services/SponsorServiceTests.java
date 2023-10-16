@@ -5,7 +5,7 @@ import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.dbos.repos.SponsorCongressRepo;
 import co.inajar.oursponsors.dbos.repos.SponsorSenatorsRepo;
-import co.inajar.oursponsors.dbos.repos.fec.SponsorsRepo;
+import co.inajar.oursponsors.dbos.repos.fec.SponsorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
@@ -38,7 +38,7 @@ public class SponsorServiceTests {
     private CongressRepo congressRepo;
 
     @Mock
-    private SponsorsRepo sponsorsRepo;
+    private SponsorRepo sponsorRepo;
 
     @Mock
     private SponsorSenatorsRepo sponsorSenatorsRepo;
@@ -67,7 +67,7 @@ public class SponsorServiceTests {
         senator.setId(osId);
 
         when(senatorRepo.getById(osId)).thenReturn(senator);
-        when(sponsorsRepo.save(any(Sponsor.class))).thenReturn(new Sponsor());
+        when(sponsorRepo.save(any(Sponsor.class))).thenReturn(new Sponsor());
 
         // Act
         Sponsor result = sponsorsService.mapFecDonorToSponsor(donor, osId, chamber);
@@ -96,7 +96,7 @@ public class SponsorServiceTests {
         congress.setId(osId);
 
         when(congressRepo.getById(osId)).thenReturn(congress);
-        when(sponsorsRepo.save(any(Sponsor.class))).thenReturn(new Sponsor());
+        when(sponsorRepo.save(any(Sponsor.class))).thenReturn(new Sponsor());
 
         // Act
         Sponsor result = sponsorsService.mapFecDonorToSponsor(donor, osId, chamber);

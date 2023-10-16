@@ -8,7 +8,7 @@ import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.dbos.repos.SponsorCongressRepo;
 import co.inajar.oursponsors.dbos.repos.SponsorSenatorsRepo;
-import co.inajar.oursponsors.dbos.repos.fec.SponsorsRepo;
+import co.inajar.oursponsors.dbos.repos.fec.SponsorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
@@ -28,7 +28,7 @@ public class SponsorManagerImpl implements SponsorManager {
     DonationManager donationManager;
 
     @Autowired
-    SponsorsRepo sponsorsRepo;
+    SponsorRepo sponsorRepo;
     @Autowired
     SenatorRepo senatorRepo;
     @Autowired
@@ -94,12 +94,12 @@ public class SponsorManagerImpl implements SponsorManager {
     }
 
     private Optional<Sponsor> getSponsorById(Long id) {
-        return sponsorsRepo.findById(id);
+        return sponsorRepo.findById(id);
     }
 
     @Override
     public Optional<Sponsor> getSponsorByName(String name) {
-        return Optional.ofNullable(sponsorsRepo.findByContributorName(name));
+        return Optional.ofNullable(sponsorRepo.findByContributorName(name));
     }
 
     @Override
@@ -125,7 +125,7 @@ public class SponsorManagerImpl implements SponsorManager {
         if (chamber.equals("senator")) {
             Senator senator = senatorRepo.getById(osId);
             // add new sponsor
-            sponsorsRepo.save(newSponsor);
+            sponsorRepo.save(newSponsor);
             // add sponsorSenator ManyToMany
             SponsorSenator sponsorSenator = new SponsorSenator();
             sponsorSenator.setSponsor(newSponsor);
@@ -134,7 +134,7 @@ public class SponsorManagerImpl implements SponsorManager {
         } else if (chamber.equals("congress")) {
             Congress congress = congressRepo.getById(osId);
             // add new sponsor
-            sponsorsRepo.save(newSponsor);
+            sponsorRepo.save(newSponsor);
             // add sponsorCongress ManyToMany
             SponsorCongress sponsorCongress = new SponsorCongress();
             sponsorCongress.setSponsor(newSponsor);
