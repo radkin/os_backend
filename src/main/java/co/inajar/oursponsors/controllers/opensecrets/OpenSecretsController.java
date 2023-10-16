@@ -8,7 +8,7 @@ import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
 import co.inajar.oursponsors.models.opensecrets.sector.SectorRequest;
 import co.inajar.oursponsors.models.opensecrets.sector.SmallSectorResponse;
 import co.inajar.oursponsors.services.fec.CommitteeManager;
-import co.inajar.oursponsors.services.opensecrets.CandidateApiManager;
+import co.inajar.oursponsors.services.opensecrets.CandidateManager;
 import co.inajar.oursponsors.services.opensecrets.ContributorManager;
 import co.inajar.oursponsors.services.opensecrets.SectorManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ public class OpenSecretsController {
     private ContributorManager contributorManager;
 
     @Autowired
-    private CandidateApiManager candidateApiManager;
+    private CandidateManager candidateManager;
 
     @Autowired
     SectorManager sectorManager;
@@ -51,7 +51,7 @@ public class OpenSecretsController {
         } else {
 //            // ToDo: remove this "on demand" gathering when we have a complete table
             var openSecretsSectors = new ArrayList<OpenSecretsSector>();
-            var possibleOnDemandSectors = Optional.ofNullable(candidateApiManager.getOpenSecretsSector(data.getCid()));
+            var possibleOnDemandSectors = Optional.ofNullable(candidateManager.getOpenSecretsSector(data.getCid()));
             possibleOnDemandSectors.ifPresent(openSecretsSectors::addAll);
             var list = sectorManager.mapOpenSecretsResponseToSectors(openSecretsSectors).stream()
                     .map(SmallSectorResponse::new)
@@ -75,9 +75,9 @@ public class OpenSecretsController {
         } else {
 //            // ToDo: remove this "on demand" gathering when we have a complete table
             var openSecretsContributors = new ArrayList<OpenSecretsContributor>();
-            var possibleOnDemandContributors = Optional.ofNullable(candidateApiManager.getOpenSecretsContributor(data.getCid()));
+            var possibleOnDemandContributors = Optional.ofNullable(candidateManager.getOpenSecretsContributor(data.getCid()));
             possibleOnDemandContributors.ifPresent(openSecretsContributors::addAll);
-            var list = candidateApiManager.mapOpenSecretsResponseToContributors(openSecretsContributors).stream()
+            var list = candidateManager.mapOpenSecretsResponseToContributors(openSecretsContributors).stream()
                     .map(SmallContributorResponse::new)
                     .toList();
             response.addAll(list);

@@ -4,7 +4,7 @@ import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
 import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.contributor.ContributorResponse;
 import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
-import co.inajar.oursponsors.services.opensecrets.CandidateApiManager;
+import co.inajar.oursponsors.services.opensecrets.CandidateManager;
 import co.inajar.oursponsors.services.opensecrets.SectorManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ import java.util.List;
 public class AdminOpensecretsController {
 
     @Autowired
-    private CandidateApiManager candidateApiManager;
+    private CandidateManager candidateManager;
 
     @Autowired
     private SectorManager sectorManager;
@@ -31,7 +31,7 @@ public class AdminOpensecretsController {
         // There are 400 and some change, total CIDs. Part 5 was 500 rows
         // as opensecrets.org only allows 200 downloads per day.
         var httpStatus = HttpStatus.OK;
-        var sectorResponses = candidateApiManager.getSectorsListResponse(part);
+        var sectorResponses = candidateManager.getSectorsListResponse(part);
         var response = sectorManager.mapOpenSecretsResponseToSectors(sectorResponses).stream()
                 .map(SectorResponse::new)
                 .toList();
@@ -45,8 +45,8 @@ public class AdminOpensecretsController {
         // There are 400 and some change, total CIDs. Part 5 was 500 rows
         // as opensecrets.org only allows 200 downloads per day.
         var httpStatus = HttpStatus.OK;
-        var contributorResponses = candidateApiManager.getContributorsListResponse(part);
-        var response = candidateApiManager.mapOpenSecretsResponseToContributors(contributorResponses).stream()
+        var contributorResponses = candidateManager.getContributorsListResponse(part);
+        var response = candidateManager.mapOpenSecretsResponseToContributors(contributorResponses).stream()
                 .map(ContributorResponse::new)
                 .toList();
         return new ResponseEntity<>(response, httpStatus);
@@ -58,7 +58,7 @@ public class AdminOpensecretsController {
     public ResponseEntity<CampaignResponse> downloadCampaign(@RequestBody CommitteeRequest data) {
         var response = new CampaignResponse();
         var httpStatus = HttpStatus.OK;
-        response = candidateApiManager.getPresidentialCampaignListResponse(data);
+        response = candidateManager.getPresidentialCampaignListResponse(data);
 
         return new ResponseEntity<>(response, httpStatus);
     }

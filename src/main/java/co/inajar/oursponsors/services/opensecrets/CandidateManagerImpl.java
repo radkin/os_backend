@@ -4,13 +4,10 @@ import co.inajar.oursponsors.dbos.entities.campaigns.Committee;
 import co.inajar.oursponsors.dbos.entities.campaigns.Donation;
 import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
 import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
-import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.dbos.repos.CommitteeRepo;
 import co.inajar.oursponsors.dbos.repos.fec.DonationRepo;
-import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
-import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
@@ -54,7 +51,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-public class CandidateApiImpl implements CandidateApiManager {
+public class CandidateManagerImpl implements CandidateManager {
     private static final String NO_CONTRIBUTOR_FOUND = "No Contributor found! {}";
     private static final String OPEN_SECRETS_CLIENT_PROBLEM = "Problem with client request to OpenSecrets.org CID: {}";
     private static final String UNABLE_TO_SLEEP = "Unable to sleep";
@@ -63,7 +60,7 @@ public class CandidateApiImpl implements CandidateApiManager {
 
     // temporary
 //    private static final String NON_PRESIDENTIAL_CANDIDATE = "Cannot scrape opensecrets for non-presidential candidate fundraising data";
-    private final Logger logger = LoggerFactory.getLogger(CandidateApiImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(CandidateManagerImpl.class);
 
     @Autowired
     private SponsorManager sponsorManager;
