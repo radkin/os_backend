@@ -1,7 +1,6 @@
 package co.inajar.oursponsors.services.opensecrets;
 
 import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
-import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
 import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
@@ -11,10 +10,7 @@ import java.util.List;
 
 public interface CandidateApiManager {
 
-    //    List<Sector> getSectorsListResponse();
     List<OpenSecretsSector> getSectorsListResponse(Integer part);
-
-    List<Sector> mapOpenSecretsResponseToSectors(List<OpenSecretsSector> sectors);
 
     List<OpenSecretsSector> getOpenSecretsSector(String cid);
 

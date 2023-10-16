@@ -5,6 +5,7 @@ import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.contributor.ContributorResponse;
 import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
 import co.inajar.oursponsors.services.opensecrets.CandidateApiManager;
+import co.inajar.oursponsors.services.opensecrets.SectorManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,9 @@ public class AdminOpensecretsController {
     @Autowired
     private CandidateApiManager candidateApiManager;
 
+    @Autowired
+    private SectorManager sectorManager;
+
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "download_sectors/{part}")
     public ResponseEntity<List<SectorResponse>> downloadSectors(@PathVariable Integer part) {
@@ -28,7 +32,7 @@ public class AdminOpensecretsController {
         // as opensecrets.org only allows 200 downloads per day.
         var httpStatus = HttpStatus.OK;
         var sectorResponses = candidateApiManager.getSectorsListResponse(part);
-        var response = candidateApiManager.mapOpenSecretsResponseToSectors(sectorResponses).stream()
+        var response = sectorManager.mapOpenSecretsResponseToSectors(sectorResponses).stream()
                 .map(SectorResponse::new)
                 .toList();
         return new ResponseEntity<>(response, httpStatus);

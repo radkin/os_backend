@@ -9,7 +9,8 @@ import co.inajar.oursponsors.models.opensecrets.sector.SectorRequest;
 import co.inajar.oursponsors.models.opensecrets.sector.SmallSectorResponse;
 import co.inajar.oursponsors.services.fec.CommitteeManager;
 import co.inajar.oursponsors.services.opensecrets.CandidateApiManager;
-import co.inajar.oursponsors.services.opensecrets.CandidateManager;
+import co.inajar.oursponsors.services.opensecrets.ContributorManager;
+import co.inajar.oursponsors.services.opensecrets.SectorManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +26,14 @@ import java.util.Optional;
 public class OpenSecretsController {
 
     @Autowired
-    private CandidateManager candidateManager;
+    private ContributorManager contributorManager;
 
     @Autowired
     private CandidateApiManager candidateApiManager;
+
+    @Autowired
+    SectorManager sectorManager;
+
     @Autowired
     private CommitteeManager committeeManager;
 
@@ -37,7 +42,7 @@ public class OpenSecretsController {
     public ResponseEntity<List<SmallSectorResponse>> getSectors(@RequestBody SectorRequest data) {
         var response = new ArrayList<SmallSectorResponse>();
         var httpStatus = HttpStatus.OK;
-        var possibleSectors = candidateManager.getSectorsByCid(data.getCid());
+        var possibleSectors = sectorManager.getSectorsByCid(data.getCid());
         if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
             var list = possibleSectors.get().parallelStream()
                     .map(SmallSectorResponse::new)
@@ -48,7 +53,7 @@ public class OpenSecretsController {
             var openSecretsSectors = new ArrayList<OpenSecretsSector>();
             var possibleOnDemandSectors = Optional.ofNullable(candidateApiManager.getOpenSecretsSector(data.getCid()));
             possibleOnDemandSectors.ifPresent(openSecretsSectors::addAll);
-            var list = candidateApiManager.mapOpenSecretsResponseToSectors(openSecretsSectors).stream()
+            var list = sectorManager.mapOpenSecretsResponseToSectors(openSecretsSectors).stream()
                     .map(SmallSectorResponse::new)
                     .toList();
             response.addAll(list);
@@ -61,7 +66,7 @@ public class OpenSecretsController {
     public ResponseEntity<List<SmallContributorResponse>> getContributors(@RequestBody ContributorRequest data) {
         var response = new ArrayList<SmallContributorResponse>();
         var httpStatus = HttpStatus.OK;
-        var possibleContributors = candidateManager.getContributorsByCid(data.getCid());
+        var possibleContributors = contributorManager.getContributorsByCid(data.getCid());
         if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() != 0) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)

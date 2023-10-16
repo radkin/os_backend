@@ -13,9 +13,9 @@ import co.inajar.oursponsors.models.propublica.congress.CongressResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorDetailsResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
 import co.inajar.oursponsors.models.user.PreferencesResponse;
-import co.inajar.oursponsors.services.opensecrets.CandidateManager;
+import co.inajar.oursponsors.services.opensecrets.ContributorManager;
+import co.inajar.oursponsors.services.opensecrets.SectorManager;
 import co.inajar.oursponsors.services.preferences.PreferencesManager;
-import co.inajar.oursponsors.services.user.UserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +31,12 @@ public class MemberImpl implements MemberManager {
     private SenatorRepo senatorRepo;
     @Autowired
     private CongressRepo congressRepo;
+
     @Autowired
-    private UserManager userManager;
+    private SectorManager sectorManager;
+
     @Autowired
-    private CandidateManager candidateManager;
+    private ContributorManager contributorManager;
 
     @Autowired
     private PreferencesManager preferencesManager;
@@ -86,7 +88,7 @@ public class MemberImpl implements MemberManager {
         var preferencesResponse = new PreferencesResponse(preferences);
         senatorDetails.setPreferences(preferencesResponse);
         // sectors
-        var possibleSectors = candidateManager.getSectorsByCid(senator.getCrpId());
+        var possibleSectors = sectorManager.getSectorsByCid(senator.getCrpId());
         if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
             var list = possibleSectors.get().parallelStream()
                     .map(SmallSectorResponse::new)
@@ -94,7 +96,7 @@ public class MemberImpl implements MemberManager {
             senatorDetails.setSectors(list);
         }
         // contributors
-        var possibleContributors = candidateManager.getContributorsByCid(senator.getCrpId());
+        var possibleContributors = contributorManager.getContributorsByCid(senator.getCrpId());
         if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() != 0) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)
@@ -116,7 +118,7 @@ public class MemberImpl implements MemberManager {
         var preferencesResponse = new PreferencesResponse(preferences);
         congressDetails.setPreferences(preferencesResponse);
         // sectors
-        var possibleSectors = candidateManager.getSectorsByCid(congress.getCrpId());
+        var possibleSectors = sectorManager.getSectorsByCid(congress.getCrpId());
         if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
             var list = possibleSectors.get().parallelStream()
                     .map(SmallSectorResponse::new)
@@ -124,7 +126,7 @@ public class MemberImpl implements MemberManager {
             congressDetails.setSectors(list);
         }
         // contributors
-        var possibleContributors = candidateManager.getContributorsByCid(congress.getCrpId());
+        var possibleContributors = contributorManager.getContributorsByCid(congress.getCrpId());
         if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() != 0) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)

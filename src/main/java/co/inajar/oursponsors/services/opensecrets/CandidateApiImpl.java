@@ -68,9 +68,7 @@ public class CandidateApiImpl implements CandidateApiManager {
     @Autowired
     private SponsorManager sponsorManager;
     @Autowired
-    private SectorRepo sectorRepo;
-    @Autowired
-    private ContributorRepo contributorRepo;
+    private ContributorManager contributorManager;
     @Autowired
     private SenatorRepo senatorRepo;
     @Autowired
@@ -179,13 +177,7 @@ public class CandidateApiImpl implements CandidateApiManager {
         return new ReactorClientHttpConnector(httpClient);
     }
 
-    @Override
-    public List<Sector> mapOpenSecretsResponseToSectors(List<OpenSecretsSector> sectors) {
-        // for now every sector is a new one. We are not set up for updates. Delete all prior to refresh
-        return sectors.parallelStream()
-                .map(this::createSector)
-                .toList();
-    }
+
 
     @Override
     public List<OpenSecretsSector> getOpenSecretsSector(String cid) {
@@ -270,7 +262,7 @@ public class CandidateApiImpl implements CandidateApiManager {
     public List<Contributor> mapOpenSecretsResponseToContributors(List<OpenSecretsContributor> contributors) {
         // for now every contributor is a new one. We are not set up for updates. Delete all prior to refresh
         return contributors.parallelStream()
-                .map(this::createContributor)
+                .map(contributorManager::createContributor)
                 .toList();
     }
 
@@ -374,6 +366,8 @@ public class CandidateApiImpl implements CandidateApiManager {
         return cmtes;
     }
 
+    // Note: this is not the same as committeeManager.createCommittee.
+    // ToDo: rename or refactor to use the one in committeeManager
     private Committee createCommittee(CommitteeRequest data, String cmte) {
         var committee = new Committee();
         committee.setPpId(data.getPpId());
@@ -439,38 +433,8 @@ public class CandidateApiImpl implements CandidateApiManager {
         return donationRepo.save(newDonation);
     }
 
-    private Contributor createContributor(OpenSecretsContributor openSecretsContributor) {
-        var newContributor = new Contributor();
-        var nc = setContributor(newContributor, openSecretsContributor);
-        return contributorRepo.save(nc);
-    }
 
-    private Contributor setContributor(Contributor contributor, OpenSecretsContributor osc) {
-        contributor.setCid(osc.getCid());
-        contributor.setCycle(osc.getCycle());
-        contributor.setOrgName(osc.getOrgName());
-        contributor.setContributorId(osc.getContributorId());
-        contributor.setIndivs(Integer.valueOf(osc.getIndivs()));
-        contributor.setPacs(Integer.valueOf(osc.getPacs()));
-        contributor.setTotal(Integer.valueOf(osc.getTotal()));
-        return contributor;
-    }
 
-    private Sector createSector(OpenSecretsSector openSecretsSector) {
-        var newSector = new Sector();
-        var ns = setSector(newSector, openSecretsSector);
-        return sectorRepo.save(ns);
-    }
 
-    private Sector setSector(Sector sector, OpenSecretsSector oss) {
-        sector.setCid(oss.getCid());
-        sector.setCycle(oss.getCycle());
-        sector.setSectorName(oss.getSectorName());
-        sector.setSectorId(oss.getSectorId());
-        sector.setIndivs(Integer.valueOf(oss.getIndivs()));
-        sector.setPacs(Integer.valueOf(oss.getPacs()));
-        sector.setTotal(Integer.valueOf(oss.getTotal()));
-        return sector;
-    }
 
 }
