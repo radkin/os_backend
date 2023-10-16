@@ -3,6 +3,7 @@ package co.inajar.oursponsors.services.opensecrets;
 import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Optional;
 @Service
 public class SectorManagerImpl implements SectorManager {
 
+    @Autowired
     SectorRepo sectorRepo;
 
     public Sector createSector(OpenSecretsSector openSecretsSector) {
