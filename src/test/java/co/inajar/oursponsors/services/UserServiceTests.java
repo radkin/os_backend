@@ -1,10 +1,11 @@
-package co.inajar.oursponsors.services.user;
+package co.inajar.oursponsors.services;
 
 import co.inajar.oursponsors.dbos.entities.User;
 import co.inajar.oursponsors.dbos.repos.UserRepo;
 import co.inajar.oursponsors.helpers.NameGenerator;
 import co.inajar.oursponsors.helpers.TokenGenerator;
 import co.inajar.oursponsors.models.user.UserRequest;
+import co.inajar.oursponsors.services.user.UserManagerImpl;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

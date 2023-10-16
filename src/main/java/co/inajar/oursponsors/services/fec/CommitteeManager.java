@@ -17,4 +17,5 @@ public interface CommitteeManager {
     CampaignResponse getCongressCampaignListResponse(Congress congress);
 
     List<Committee> getCommittees();
+    Committee createCommittee(Object entity, String cmte);
 }

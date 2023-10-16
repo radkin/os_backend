@@ -390,7 +390,7 @@ public class CandidateManagerImpl implements CandidateManager {
             Optional<Sponsor> possibleExistingSponsor = sponsorManager.getSponsorByName(d.getContributorName());
             Sponsor sponsor;
             if (possibleExistingSponsor.isEmpty()) {
-                sponsor = sponsorManager.mapFecDonorToSponsor(d, data.getChamber(), data.getOsId());
+                sponsor = sponsorManager.mapFecDonorToSponsor(d, data.getOsId(), data.getChamber());
                 newSponsors.add(sponsor);
             } else {
                 BigDecimal possibleExistingSponsorYtd = possibleExistingSponsor.get().getContributorAggregateYtd();

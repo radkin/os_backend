@@ -184,7 +184,7 @@ public class CommitteeImpl implements CommitteeManager {
         return committeeId;
     }
 
-    private Committee createCommittee(Object entity, String cmte) {
+    public Committee createCommittee(Object entity, String cmte) {
         var committee = new Committee();
         if (entity instanceof Senator) {
             Senator senator = (Senator) entity;

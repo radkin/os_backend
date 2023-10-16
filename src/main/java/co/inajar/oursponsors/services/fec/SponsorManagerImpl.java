@@ -22,7 +22,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 @Service
-public class SponsorImpl implements SponsorManager {
+public class SponsorManagerImpl implements SponsorManager {
 
     @Autowired
     DonationManager donationManager;
@@ -38,7 +38,7 @@ public class SponsorImpl implements SponsorManager {
     @Autowired
     SponsorCongressRepo sponsorCongressRepo;
 
-    private Logger logger = LoggerFactory.getLogger(SponsorImpl.class);
+    private Logger logger = LoggerFactory.getLogger(SponsorManagerImpl.class);
 
     private static final String SENATOR_ID_NOT_FOUND = "No Senator found by ID: {}";
     private static final String INVALID_CHAMBER_NAME = "Invalid chamber please use either senator or congress";
@@ -169,43 +169,4 @@ public class SponsorImpl implements SponsorManager {
         return newSponsors;
     }
 
-    @Override
-    public Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, String chamber, Long osId) {
-        var newSponsor = new Sponsor();
-        var receiptAmount = new BigDecimal(donor.getContributionReceiptAmount());
-        newSponsor.setContributionReceiptAmount(receiptAmount);
-        newSponsor.setContributionReceiptDate(donor.getContributionReceiptDate());
-        var aggregateAmount = new BigDecimal(donor.getContributorAggregateYtd());
-        newSponsor.setContributorAggregateYtd(aggregateAmount);
-        newSponsor.setContributorCity(donor.getContributorCity());
-        newSponsor.setContributorEmployer(donor.getContributorEmployer());
-        newSponsor.setContributorFirstName(donor.getContributorFirstName());
-        newSponsor.setContributorLastName(donor.getContributorLastName());
-        newSponsor.setContributorMiddleName(donor.getContributorMiddleName());
-        newSponsor.setContributorName(donor.getContributorName());
-        newSponsor.setContributorOccupation(donor.getContributorOccupation());
-        newSponsor.setContributorState(donor.getContributorState());
-        newSponsor.setContributorStreet1(donor.getContributorStreet1());
-        newSponsor.setContributorStreet2(donor.getContributorStreet2());
-        newSponsor.setContributorZip(donor.getContributorZip());
-
-        if (chamber.equals("senator")) {
-            var possibleSenator = Optional.of(senatorRepo.getById(osId));
-            if (possibleSenator.isPresent()) {
-                // add new sponsor
-                Senator senator = possibleSenator.get();
-                sponsorsRepo.save(newSponsor);
-                // add sponsorSenator ManyToMany
-                SponsorSenator sponsorSenator = new SponsorSenator();
-                sponsorSenator.setSponsor(newSponsor);
-                sponsorSenator.setSenator(senator);
-                sponsorSenatorsRepo.save(sponsorSenator);
-            } else {
-                logger.info(SENATOR_ID_NOT_FOUND, osId);
-            }
-        } else {
-            logger.info(INVALID_CHAMBER_NAME);
-        }
-        return newSponsor;
-    }
 }

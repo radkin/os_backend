@@ -1,6 +1,7 @@
-package co.inajar.oursponsors.services.preferences;
+package co.inajar.oursponsors.services;
 
 import co.inajar.oursponsors.dbos.repos.PreferencesRepo;
+import co.inajar.oursponsors.services.preferences.PreferencesManagerImpl;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

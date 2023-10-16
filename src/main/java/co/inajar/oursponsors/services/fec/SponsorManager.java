@@ -16,6 +16,5 @@ public interface SponsorManager {
 
     Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, Long osId, String chamber);
 
-    Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, String chamber, Long osId);
     List<Sponsor> processDonorsAndGetNewSponsors(String chamber, Long osId, String proPublicaId, Map<String, List<FecCommitteeDonor>> cmteFecDonors);
 }
