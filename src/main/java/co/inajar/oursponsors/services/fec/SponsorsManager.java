@@ -5,7 +5,7 @@ import co.inajar.oursponsors.models.fec.SponsorRequest;
 
 import java.util.List;
 
-public interface CommitteesManager {
+public interface SponsorsManager {
 
     List<Sponsor> getSponsors(SponsorRequest data);
 }

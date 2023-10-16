@@ -3,7 +3,7 @@ package co.inajar.oursponsors.models.propublica.senator;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.models.fec.SponsorRequest;
 import co.inajar.oursponsors.models.fec.SponsorResponse;
-import co.inajar.oursponsors.services.fec.CommitteesManager;
+import co.inajar.oursponsors.services.fec.SponsorsManager;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -20,7 +20,7 @@ public class MiniSenatorResponse {
     private static final String BASE_URL = "https://theunitedstates.io/images/congress/original";
     @JsonProperty(value = "rep_type")
     private String repType;
-    private CommitteesManager committeesManager;
+    private SponsorsManager sponsorsManager;
     @JsonProperty(value = "id")
     private Long id;
     @JsonProperty(value = "title")
@@ -38,7 +38,7 @@ public class MiniSenatorResponse {
     @JsonProperty(value = "sponsors")
     private Set<SponsorResponse> sponsors;
 
-    public MiniSenatorResponse(Senator senator, CommitteesManager committeesManager) {
+    public MiniSenatorResponse(Senator senator, SponsorsManager sponsorsManager) {
         repType = REPTYPE;
         id = senator.getId();
         title = senator.getTitle();
@@ -47,7 +47,7 @@ public class MiniSenatorResponse {
         party = senator.getParty();
         state = senator.getState();
         imageUrl = BASE_URL + "/" + senator.getProPublicaId() + ".jpg";
-        this.committeesManager = committeesManager;
+        this.sponsorsManager = sponsorsManager;
 
         sponsors = new HashSet<>();
 
@@ -55,7 +55,7 @@ public class MiniSenatorResponse {
         data.setChamber("senator");
         data.setOsId(senator.getId());
 
-        var possibleSponsors = Optional.ofNullable(committeesManager.getSponsors(data));
+        var possibleSponsors = Optional.ofNullable(sponsorsManager.getSponsors(data));
         if (possibleSponsors.isPresent()) {
             var set = possibleSponsors.get().parallelStream()
                     .map(SponsorResponse::new)

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class CommitteesImpl implements CommitteesManager {
+public class SponsorsImpl implements SponsorsManager {
 
     @Autowired
     SponsorsRepo sponsorsRepo;
@@ -37,7 +37,7 @@ public class CommitteesImpl implements CommitteesManager {
     @Autowired
     SponsorCongressRepo sponsorCongressRepo;
 
-    private Logger logger = LoggerFactory.getLogger(CommitteesImpl.class);
+    private Logger logger = LoggerFactory.getLogger(SponsorsImpl.class);
 
     @Override
     public List<Sponsor> getSponsors(SponsorRequest data) {

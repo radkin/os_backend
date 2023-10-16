@@ -6,7 +6,7 @@ import co.inajar.oursponsors.models.propublica.congress.MiniCongressResponse;
 import co.inajar.oursponsors.models.propublica.senator.MiniSenatorResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorDetailsResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
-import co.inajar.oursponsors.services.fec.CommitteesManager;
+import co.inajar.oursponsors.services.fec.SponsorsManager;
 import co.inajar.oursponsors.services.preferences.PreferencesManager;
 import co.inajar.oursponsors.services.propublica.MembersManager;
 import co.inajar.oursponsors.services.user.UserManager;
@@ -37,7 +37,7 @@ public class ProPublicaController {
     private MembersManager membersManager;
 
     @Autowired
-    private CommitteesManager committeesManager;
+    private SponsorsManager sponsorsManager;
 
     @Autowired
     private PreferencesManager preferencesManager;
@@ -104,7 +104,7 @@ public class ProPublicaController {
             var possibleSenators = membersManager.getSenators(user);
             if (possibleSenators.isPresent()) {
                 var list = possibleSenators.get().parallelStream()
-                        .map(senator -> new MiniSenatorResponse(senator, committeesManager))
+                        .map(senator -> new MiniSenatorResponse(senator, sponsorsManager))
                         .toList();
                 response.addAll(list);
             }
@@ -150,7 +150,7 @@ public class ProPublicaController {
             var possibleCongress = membersManager.getCongress(user);
             if (possibleCongress.isPresent()) {
                 var list = possibleCongress.get().parallelStream()
-                        .map(congress -> new MiniCongressResponse(congress, committeesManager))
+                        .map(congress -> new MiniCongressResponse(congress, sponsorsManager))
                         .toList();
                 response.addAll(list);
             }
