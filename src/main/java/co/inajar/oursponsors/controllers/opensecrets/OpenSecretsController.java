@@ -7,8 +7,9 @@ import co.inajar.oursponsors.models.opensecrets.contributor.SmallContributorResp
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
 import co.inajar.oursponsors.models.opensecrets.sector.SectorRequest;
 import co.inajar.oursponsors.models.opensecrets.sector.SmallSectorResponse;
-import co.inajar.oursponsors.services.opensecrets.CandidatesApiManager;
-import co.inajar.oursponsors.services.opensecrets.CandidatesManager;
+import co.inajar.oursponsors.services.fec.CommitteeManager;
+import co.inajar.oursponsors.services.opensecrets.CandidateApiManager;
+import co.inajar.oursponsors.services.opensecrets.CandidateManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,17 +25,19 @@ import java.util.Optional;
 public class OpenSecretsController {
 
     @Autowired
-    private CandidatesManager candidatesManager;
+    private CandidateManager candidateManager;
 
     @Autowired
-    private CandidatesApiManager candidatesApiManager;
+    private CandidateApiManager candidateApiManager;
+    @Autowired
+    private CommitteeManager committeeManager;
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(path = "get_sectors")
     public ResponseEntity<List<SmallSectorResponse>> getSectors(@RequestBody SectorRequest data) {
         var response = new ArrayList<SmallSectorResponse>();
         var httpStatus = HttpStatus.OK;
-        var possibleSectors = candidatesManager.getSectorsByCid(data.getCid());
+        var possibleSectors = candidateManager.getSectorsByCid(data.getCid());
         if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
             var list = possibleSectors.get().parallelStream()
                     .map(SmallSectorResponse::new)
@@ -43,9 +46,9 @@ public class OpenSecretsController {
         } else {
 //            // ToDo: remove this "on demand" gathering when we have a complete table
             var openSecretsSectors = new ArrayList<OpenSecretsSector>();
-            var possibleOnDemandSectors = Optional.ofNullable(candidatesApiManager.getOpenSecretsSector(data.getCid()));
+            var possibleOnDemandSectors = Optional.ofNullable(candidateApiManager.getOpenSecretsSector(data.getCid()));
             possibleOnDemandSectors.ifPresent(openSecretsSectors::addAll);
-            var list = candidatesApiManager.mapOpenSecretsResponseToSectors(openSecretsSectors).stream()
+            var list = candidateApiManager.mapOpenSecretsResponseToSectors(openSecretsSectors).stream()
                     .map(SmallSectorResponse::new)
                     .toList();
             response.addAll(list);
@@ -58,7 +61,7 @@ public class OpenSecretsController {
     public ResponseEntity<List<SmallContributorResponse>> getContributors(@RequestBody ContributorRequest data) {
         var response = new ArrayList<SmallContributorResponse>();
         var httpStatus = HttpStatus.OK;
-        var possibleContributors = candidatesManager.getContributorsByCid(data.getCid());
+        var possibleContributors = candidateManager.getContributorsByCid(data.getCid());
         if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() != 0) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)
@@ -67,9 +70,9 @@ public class OpenSecretsController {
         } else {
 //            // ToDo: remove this "on demand" gathering when we have a complete table
             var openSecretsContributors = new ArrayList<OpenSecretsContributor>();
-            var possibleOnDemandContributors = Optional.ofNullable(candidatesApiManager.getOpenSecretsContributor(data.getCid()));
+            var possibleOnDemandContributors = Optional.ofNullable(candidateApiManager.getOpenSecretsContributor(data.getCid()));
             possibleOnDemandContributors.ifPresent(openSecretsContributors::addAll);
-            var list = candidatesApiManager.mapOpenSecretsResponseToContributors(openSecretsContributors).stream()
+            var list = candidateApiManager.mapOpenSecretsResponseToContributors(openSecretsContributors).stream()
                     .map(SmallContributorResponse::new)
                     .toList();
             response.addAll(list);
@@ -82,7 +85,7 @@ public class OpenSecretsController {
     public ResponseEntity<List<CommitteeResponse>> getCommittees() {
         var response = new ArrayList<CommitteeResponse>();
         var httpStatus = HttpStatus.OK;
-        var committees = candidatesApiManager.getCommittees();
+        var committees = committeeManager.getCommittees();
         var list = committees.parallelStream()
                 .map(CommitteeResponse::new)
                 .toList();

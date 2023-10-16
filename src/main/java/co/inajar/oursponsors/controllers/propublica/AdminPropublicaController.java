@@ -2,7 +2,7 @@ package co.inajar.oursponsors.controllers.propublica;
 
 import co.inajar.oursponsors.models.propublica.congress.CongressResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
-import co.inajar.oursponsors.services.propublica.MembersApiManager;
+import co.inajar.oursponsors.services.propublica.MemberApiManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,15 +19,15 @@ import java.util.List;
 public class AdminPropublicaController {
 
     @Autowired
-    private MembersApiManager membersApiManager;
+    private MemberApiManager memberApiManager;
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "download_senators")
     public ResponseEntity<List<SenatorResponse>> downloadSenators() {
         var response = new ArrayList<SenatorResponse>();
         var httpStatus = HttpStatus.OK;
-        var senatorResponses = membersApiManager.getSenatorsListResponse();
-        var list = membersApiManager.mapPropublicaResponseToSenators(senatorResponses).parallelStream()
+        var senatorResponses = memberApiManager.getSenatorsListResponse();
+        var list = memberApiManager.mapPropublicaResponseToSenators(senatorResponses).parallelStream()
                 .map(SenatorResponse::new)
                 .toList();
         response.addAll(list);
@@ -39,8 +39,8 @@ public class AdminPropublicaController {
     public ResponseEntity<List<CongressResponse>> downloadCongress() {
         var response = new ArrayList<CongressResponse>();
         var httpStatus = HttpStatus.OK;
-        var congressResponses = membersApiManager.getCongressListResponse();
-        var list = membersApiManager.mapPropublicaResponseToCongress(congressResponses).parallelStream()
+        var congressResponses = memberApiManager.getCongressListResponse();
+        var list = memberApiManager.mapPropublicaResponseToCongress(congressResponses).parallelStream()
                 .map(CongressResponse::new)
                 .toList();
         response.addAll(list);
