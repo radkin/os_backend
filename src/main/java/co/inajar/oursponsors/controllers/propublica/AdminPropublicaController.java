@@ -24,13 +24,12 @@ public class AdminPropublicaController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "download_senators")
     public ResponseEntity<List<SenatorResponse>> downloadSenators() {
-        var response = new ArrayList<SenatorResponse>();
         var httpStatus = HttpStatus.OK;
         var senatorResponses = memberApiManager.getSenatorsListResponse();
         var list = memberApiManager.mapPropublicaResponseToSenators(senatorResponses).parallelStream()
                 .map(SenatorResponse::new)
                 .toList();
-        response.addAll(list);
+        var response = new ArrayList<>(list);
         return new ResponseEntity<>(response, httpStatus);
     }
 

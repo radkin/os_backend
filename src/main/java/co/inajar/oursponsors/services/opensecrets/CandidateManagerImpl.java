@@ -52,6 +52,7 @@ import java.util.stream.Stream;
 
 @Service
 public class CandidateManagerImpl implements CandidateManager {
+    private static final String CREATING_DONATIONS = "creating new donations {}";
     private static final String NO_CONTRIBUTOR_FOUND = "No Contributor found! {}";
     private static final String OPEN_SECRETS_CLIENT_PROBLEM = "Problem with client request to OpenSecrets.org CID: {}";
     private static final String UNABLE_TO_SLEEP = "Unable to sleep";
@@ -409,6 +410,7 @@ public class CandidateManagerImpl implements CandidateManager {
                 }
             }
             donations.add(mapFecDonorToDonation(d, sponsor, data.getPpId()));
+            logger.info(CREATING_DONATIONS, donations);
         }));
         return newSponsors;
     }

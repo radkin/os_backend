@@ -88,13 +88,12 @@ public class OpenSecretsController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "get_committees")
     public ResponseEntity<List<CommitteeResponse>> getCommittees() {
-        var response = new ArrayList<CommitteeResponse>();
         var httpStatus = HttpStatus.OK;
         var committees = committeeManager.getCommittees();
         var list = committees.parallelStream()
                 .map(CommitteeResponse::new)
                 .toList();
-        response.addAll(list);
+        var response = new ArrayList<>(list);
         return new ResponseEntity<>(response, httpStatus);
     }
 

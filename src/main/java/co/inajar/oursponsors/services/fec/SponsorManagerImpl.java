@@ -37,9 +37,8 @@ public class SponsorManagerImpl implements SponsorManager {
     SponsorSenatorsRepo sponsorSenatorsRepo;
     @Autowired
     SponsorCongressRepo sponsorCongressRepo;
-
+    private static final String CREATING_DONATIONS = "creating new donations {}";
     private final Logger logger = LoggerFactory.getLogger(SponsorManagerImpl.class);
-
     private static final String INVALID_CHAMBER_NAME = "Invalid chamber please use either senator or congress";
 
     @Override
@@ -164,6 +163,7 @@ public class SponsorManagerImpl implements SponsorManager {
                 }
             }
             donations.add(donationManager.mapFecDonorToDonation(d, sponsor, proPublicaId));
+            logger.info(CREATING_DONATIONS, donations);
         }));
         return newSponsors;
     }

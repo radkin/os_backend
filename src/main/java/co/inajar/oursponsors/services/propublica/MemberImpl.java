@@ -16,8 +16,6 @@ import co.inajar.oursponsors.models.user.PreferencesResponse;
 import co.inajar.oursponsors.services.opensecrets.ContributorManager;
 import co.inajar.oursponsors.services.opensecrets.SectorManager;
 import co.inajar.oursponsors.services.preferences.PreferencesManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -117,7 +115,7 @@ public class MemberImpl implements MemberManager {
         congressDetails.setPreferences(preferencesResponse);
         // sectors
         var possibleSectors = sectorManager.getSectorsByCid(congress.getCrpId());
-        if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
+        if (possibleSectors.isPresent() && !possibleSectors.get().isEmpty()) {
             var list = possibleSectors.get().parallelStream()
                     .map(SmallSectorResponse::new)
                     .toList();
@@ -125,7 +123,7 @@ public class MemberImpl implements MemberManager {
         }
         // contributors
         var possibleContributors = contributorManager.getContributorsByCid(congress.getCrpId());
-        if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() != 0) {
+        if (possibleContributors.isPresent() && !possibleContributors.get().isEmpty()) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)
                     .toList();
