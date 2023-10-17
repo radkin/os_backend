@@ -4,7 +4,7 @@ import co.inajar.oursponsors.dbos.entities.campaigns.Committee;
 import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
-import co.inajar.oursponsors.dbos.repos.*;
+import co.inajar.oursponsors.dbos.repos.CommitteeRepo;
 import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
 import co.inajar.oursponsors.models.fec.MiniDonationResponse;
 import co.inajar.oursponsors.models.fec.SponsorResponse;
