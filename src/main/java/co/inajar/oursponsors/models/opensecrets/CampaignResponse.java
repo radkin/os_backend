@@ -9,16 +9,13 @@ import java.util.List;
 
 @Data
 public class CampaignResponse {
-
-    @JsonProperty(value = "donations")
+    @JsonProperty("donations")
     private List<MiniDonationResponse> donations;
 
-    @JsonProperty(value = "committees")
+    @JsonProperty("committees")
     private List<CommitteeResponse> committees;
 
-    @JsonProperty(value = "sponsors")
+    @JsonProperty("sponsors")
     private List<SponsorResponse> sponsors;
-
-    public CampaignResponse() {
-    }
 }
+

@@ -53,13 +53,11 @@ public class AdminOpensecretsController {
     }
 
     /* NOTE: this is really both OpenSecrets and FEC */
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated")
     @PostMapping(path = "download_campaign")
     public ResponseEntity<CampaignResponse> downloadCampaign(@RequestBody CommitteeRequest data) {
-        var response = new CampaignResponse();
-        var httpStatus = HttpStatus.OK;
-        response = candidateManager.getPresidentialCampaignListResponse(data);
-
-        return new ResponseEntity<>(response, httpStatus);
+        CampaignResponse response = candidateManager.getPresidentialCampaignListResponse(data);
+        return ResponseEntity.ok(response);
     }
+
 }

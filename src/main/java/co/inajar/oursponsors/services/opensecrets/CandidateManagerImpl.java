@@ -81,23 +81,31 @@ public class CandidateManagerImpl implements CandidateManager {
 
     @Override
     public List<OpenSecretsSector> getSectorsListResponse(Integer part) {
-        var openSecretsSectors = new ArrayList<OpenSecretsSector>();
-        // get a list of all cids in propublica table
-        // Todo: This should be a one off SQL query not a pull of all Members
-        var chunk = gatherCids();
-        var chunkPart = chunk.get(part);
-        for (var cid : chunkPart) {
-            // one CID to many sectors
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (Exception e) {
-                logger.error(UNABLE_TO_SLEEP, e);
-            }
-            var possibleSectors = Optional.ofNullable(getOpenSecretsSector(cid));
-            possibleSectors.ifPresent(openSecretsSectors::addAll);
+        List<OpenSecretsSector> openSecretsSectors = new ArrayList<>();
+
+        List<String> chunkPart = getChunkPart(part);
+        for (String cid : chunkPart) {
+            sleepForOneSecond(); // Handle InterruptedException properly
+
+            List<OpenSecretsSector> sectors = getOpenSecretsSector(cid);
+            openSecretsSectors.addAll(sectors);
         }
 
         return openSecretsSectors;
+    }
+
+    private List<String> getChunkPart(Integer part) {
+        List<List<String>> chunk = gatherCids();
+        return chunk.get(part);
+    }
+
+    private void sleepForOneSecond() {
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error(UNABLE_TO_SLEEP, e);
+        }
     }
 
     private List<List<String>> gatherCids() {
@@ -429,9 +437,4 @@ public class CandidateManagerImpl implements CandidateManager {
         newDonation.setPpId(ppId);
         return donationRepo.save(newDonation);
     }
-
-
-
-
-
 }

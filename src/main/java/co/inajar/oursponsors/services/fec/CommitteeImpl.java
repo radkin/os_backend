@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.http.codec.ClientCodecConfigurer;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -27,6 +28,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpClient;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 @Service
 public class CommitteeImpl implements CommitteeManager {
@@ -56,7 +58,7 @@ public class CommitteeImpl implements CommitteeManager {
         CampaignResponse campaignResponse = new CampaignResponse();
         String cmte = getFecCommitteeIdFromProPublicaCandidateId(senator.getFecCandidateId());
         Committee committee = createCommittee(senator, cmte);
-        Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee, senator.getNextElection());
+        Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee);
         List<Sponsor> newSponsors = sponsorManager.processDonorsAndGetNewSponsors("senator", senator.getId(), senator.getProPublicaId(), cmteFecDonors);
         campaignResponse.setCommittees(Collections.singletonList(new CommitteeResponse(committee)));
         campaignResponse.setSponsors(mapSponsorResponses(newSponsors));
@@ -69,7 +71,7 @@ public class CommitteeImpl implements CommitteeManager {
         CampaignResponse campaignResponse = new CampaignResponse();
         String cmte = getFecCommitteeIdFromProPublicaCandidateId(congress.getFecCandidateId());
         Committee committee = createCommittee(congress, cmte);
-        Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee, congress.getNextElection());
+        Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee);
         List<Sponsor> newSponsors = sponsorManager.processDonorsAndGetNewSponsors("congress", congress.getId(), congress.getProPublicaId(), cmteFecDonors);
         campaignResponse.setCommittees(Collections.singletonList(new CommitteeResponse(committee)));
         campaignResponse.setSponsors(mapSponsorResponses(newSponsors));
@@ -80,13 +82,27 @@ public class CommitteeImpl implements CommitteeManager {
     private WebClient createWebClient() {
         return WebClient.builder()
                 .clientConnector(createClientHttpConnector())
-                .exchangeStrategies(ExchangeStrategies.builder().codecs(clientCodecConfigurer -> clientCodecConfigurer.defaultCodecs().maxInMemorySize(1000000)).build())
+                .exchangeStrategies(createExchangeStrategies())
                 .baseUrl("https://api.open.fec.gov")
                 .build();
     }
 
     private ClientHttpConnector createClientHttpConnector() {
-        return new ReactorClientHttpConnector(HttpClient.from(TcpClient.newConnection()));
+        return new ReactorClientHttpConnector(createReactorHttpClient());
+    }
+
+    private HttpClient createReactorHttpClient() {
+        return HttpClient.from(TcpClient.newConnection());
+    }
+
+    private ExchangeStrategies createExchangeStrategies() {
+        return ExchangeStrategies.builder()
+                .codecs(configureCodecs())
+                .build();
+    }
+
+    private Consumer<ClientCodecConfigurer> configureCodecs() {
+        return clientCodecConfigurer -> clientCodecConfigurer.defaultCodecs().maxInMemorySize(1000000);
     }
 
     private List<FecCommitteeDonor> fetchFecCommitteeDonors(WebClient webClient, String committeeId, Integer twoYearTransactionPeriod) {
@@ -118,23 +134,24 @@ public class CommitteeImpl implements CommitteeManager {
     }
 
     private List<FecCommitteeDonor> mapFecCommitteeDonorsToModel(String response) {
-        var mappedDonors = new ArrayList<FecCommitteeDonor>();
-        var objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            var tree = objectMapper.readTree(response);
-            var donorsResponse = tree.get("results");
-            for (JsonNode jsonNode : donorsResponse) {
+            JsonNode results = objectMapper.readTree(response).get("results");
+            List<FecCommitteeDonor> mappedDonors = new ArrayList<>();
+
+            for (JsonNode jsonNode : results) {
                 try {
-                    var donor = objectMapper.treeToValue(jsonNode, FecCommitteeDonor.class);
+                    FecCommitteeDonor donor = objectMapper.treeToValue(jsonNode, FecCommitteeDonor.class);
                     mappedDonors.add(donor);
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
             }
+
+            return mappedDonors;
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return mappedDonors;
     }
 
     private String getFecCommitteeIdFromProPublicaCandidateId(String fecCandidateId) {
@@ -205,7 +222,7 @@ public class CommitteeImpl implements CommitteeManager {
         return 0;
     }
 
-    private Map<String, List<FecCommitteeDonor>> fetchCmteFecDonors(Committee committee, String nextElection) {
+    private Map<String, List<FecCommitteeDonor>> fetchCmteFecDonors(Committee committee) {
         var donorMap = new HashMap<String, List<FecCommitteeDonor>>();
         var donors = fetchFecCommitteeDonors(createWebClient(), committee.getFecCommitteeId(), calcTwoYearTransactionPeriod(committee));
         donorMap.put("", donors);

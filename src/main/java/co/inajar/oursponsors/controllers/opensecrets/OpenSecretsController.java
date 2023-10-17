@@ -43,7 +43,7 @@ public class OpenSecretsController {
         var response = new ArrayList<SmallSectorResponse>();
         var httpStatus = HttpStatus.OK;
         var possibleSectors = sectorManager.getSectorsByCid(data.getCid());
-        if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
+        if (possibleSectors.isPresent() && !possibleSectors.get().isEmpty()) {
             var list = possibleSectors.get().parallelStream()
                     .map(SmallSectorResponse::new)
                     .toList();
@@ -67,7 +67,7 @@ public class OpenSecretsController {
         var response = new ArrayList<SmallContributorResponse>();
         var httpStatus = HttpStatus.OK;
         var possibleContributors = contributorManager.getContributorsByCid(data.getCid());
-        if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() != 0) {
+        if (possibleContributors.isPresent() && !possibleContributors.get().isEmpty()) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)
                     .toList();

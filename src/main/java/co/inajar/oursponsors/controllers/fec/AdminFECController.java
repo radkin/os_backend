@@ -6,6 +6,8 @@ import co.inajar.oursponsors.models.fec.FecCommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
 import co.inajar.oursponsors.services.fec.CommitteeManager;
 import co.inajar.oursponsors.services.propublica.MemberManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,9 @@ import java.util.Optional;
 @RestController
 @RequestMapping(path = "/admin/fec")
 public class AdminFECController {
+
+    private final Logger logger = LoggerFactory.getLogger(AdminFECController.class);
+    private static final String CHOOSE_SENATOR_OR_CONGRESS = "Please choose senator or congress";
 
     @Autowired
     private CommitteeManager committeeManager;
@@ -42,7 +47,7 @@ public class AdminFECController {
                 response = committeeManager.getCongressCampaignListResponse(possibleCongress.get());
             }
         } else {
-            System.out.println("Please choose senator or congress");
+            logger.error(CHOOSE_SENATOR_OR_CONGRESS);
         }
 
         return new ResponseEntity<>(response, httpStatus);

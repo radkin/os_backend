@@ -21,7 +21,6 @@ import java.util.List;
 @SpringBootTest
 public class SponsorSenatorRepoTests {
 
-
     @Autowired
     private SponsorSenatorsRepo sponsorSenatorsRepo;
 

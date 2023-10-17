@@ -6,9 +6,8 @@ import java.security.SecureRandom;
 
 public class TokenGenerator {
 
-    public static void main(String[] args) {
-        String shaToken = generateSHAToken();
-        System.out.println("Generated SHA Token: " + shaToken);
+    private TokenGenerator() {
+        throw new IllegalStateException("Utility class");
     }
 
     // Method to generate a SHA-256 token

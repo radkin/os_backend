@@ -35,16 +35,16 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "get_preferences")
     public ResponseEntity<PreferencesResponse> getPreferences(@RequestHeader Map<String, String> headers) {
+        String googleUid = headers.get(GOOGLE_UID);
         var response = new PreferencesResponse();
         var httpResponse = HttpStatus.OK;
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByGoogleUid(googleUid);
         if (possibleUser.isPresent()) {
             var preferences = preferencesManager.getPreferencesByUserId(possibleUser.get().getId());
             response = new PreferencesResponse(preferences);
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, googleUid);
         }
-
 
         return new ResponseEntity<>(response, httpResponse);
     }
@@ -53,14 +53,15 @@ public class UserController {
     @PostMapping(path = "update_preferences")
     public ResponseEntity<PreferencesResponse> updatePreferences(@RequestBody PreferencesRequest data,
                                                                  @RequestHeader Map<String, String> headers) {
+        String googleUid = headers.get(GOOGLE_UID);
         var response = new PreferencesResponse();
         var httpResponse = HttpStatus.OK;
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByGoogleUid(googleUid);
         if (possibleUser.isPresent()) {
             var preferencesUpdate = preferencesManager.updateUserPreferences(data, possibleUser.get().getId());
             response = new PreferencesResponse(preferencesUpdate);
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, googleUid);
         }
 
 
@@ -70,14 +71,15 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "get_user")
     public ResponseEntity<UserResponse> getUser(@RequestHeader Map<String, String> headers) {
+        String googleUid = headers.get(GOOGLE_UID);
         var response = new UserResponse();
         var httpResponse = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByGoogleUid(googleUid);
         if (possibleUser.isPresent()) {
             response = new UserResponse(possibleUser.get());
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, googleUid);
         }
         return new ResponseEntity<>(response, httpResponse);
     }
@@ -86,23 +88,18 @@ public class UserController {
     @PostMapping(path = "create_or_update_user")
     public ResponseEntity<UserResponse> updateUser(@RequestBody UserRequest data,
                                                    @RequestHeader Map<String, String> headers) {
+        String googleUid = headers.get(GOOGLE_UID);
         var response = new UserResponse();
         var httpResponse = HttpStatus.OK;
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByGoogleUid(googleUid);
         if (possibleUser.isPresent()) {
 
             User user = possibleUser.get();
             var userUpdate = userManager.createOrUpdateUser(data, user);
             response = new UserResponse(userUpdate);
         } else {
-            logger.info(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID), CREATING_USER);
-//            User user = new User();
-//            // default state & party
-//            user.setState("IL");
-//            user.setParty("R");
-//            var createUser = userManager.createOrUpdateUser(data, user);
-//            userManager.createUserPreferences(user);
-//            response = new UserResponse(createUser);
+            logger.info(UNABLE_TO_FIND_USER, googleUid), CREATING_USER);
+            // ToDo: create user code goes here!
         }
         return new ResponseEntity<>(response, httpResponse);
     }

@@ -41,8 +41,6 @@ public class MemberImpl implements MemberManager {
     @Autowired
     private PreferencesManager preferencesManager;
 
-    private final Logger logger = LoggerFactory.getLogger(MemberApiImpl.class);
-
     @Override
     public Optional<List<Senator>> getSenators(User user) {
         var preferences = preferencesManager.getPreferencesByUserId(user.getId());
@@ -89,7 +87,7 @@ public class MemberImpl implements MemberManager {
         senatorDetails.setPreferences(preferencesResponse);
         // sectors
         var possibleSectors = sectorManager.getSectorsByCid(senator.getCrpId());
-        if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
+        if (possibleSectors.isPresent() && !possibleSectors.get().isEmpty()) {
             var list = possibleSectors.get().parallelStream()
                     .map(SmallSectorResponse::new)
                     .toList();
@@ -97,7 +95,7 @@ public class MemberImpl implements MemberManager {
         }
         // contributors
         var possibleContributors = contributorManager.getContributorsByCid(senator.getCrpId());
-        if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() != 0) {
+        if (possibleContributors.isPresent() && !possibleContributors.get().isEmpty()) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)
                     .toList();

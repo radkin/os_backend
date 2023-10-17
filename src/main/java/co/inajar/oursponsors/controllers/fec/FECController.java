@@ -32,7 +32,7 @@ public class FECController {
         if (!possibleSponsors.isEmpty()) {
             var list = possibleSponsors.parallelStream()
                     .map(SponsorResponse::new)
-                    .collect(Collectors.toList());
+                    .toList();
             response.addAll(list);
         }
         return new ResponseEntity<>(response, httpStatus);

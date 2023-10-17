@@ -7,6 +7,7 @@ import co.inajar.oursponsors.services.fec.SponsorManager;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -16,8 +17,8 @@ import java.util.stream.Collectors;
 public class MiniSenatorResponse {
 
     private static final String REPTYPE = "senator";
-
     private static final String BASE_URL = "https://theunitedstates.io/images/congress/original";
+
     @JsonProperty(value = "rep_type")
     private String repType;
     private SponsorManager sponsorManager;
@@ -48,20 +49,18 @@ public class MiniSenatorResponse {
         state = senator.getState();
         imageUrl = BASE_URL + "/" + senator.getProPublicaId() + ".jpg";
         this.sponsorManager = sponsorManager;
+        sponsors = fetchSponsors(senator);
+    }
 
-        sponsors = new HashSet<>();
-
+    private Set<SponsorResponse> fetchSponsors(Senator senator) {
         SponsorRequest data = new SponsorRequest();
         data.setChamber("senator");
         data.setOsId(senator.getId());
-
         var possibleSponsors = Optional.ofNullable(sponsorManager.getSponsors(data));
-        if (possibleSponsors.isPresent()) {
-            var set = possibleSponsors.get().parallelStream()
-                    .map(SponsorResponse::new)
-                    .limit(2)
-                    .collect(Collectors.toSet());
-            sponsors.addAll(set);
-        }
+        return possibleSponsors.orElseGet(ArrayList::new)
+                .parallelStream()
+                .map(SponsorResponse::new)
+                .limit(2)
+                .collect(Collectors.toSet());
     }
 }
