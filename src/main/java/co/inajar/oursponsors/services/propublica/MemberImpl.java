@@ -41,7 +41,7 @@ public class MemberImpl implements MemberManager {
     @Autowired
     private PreferencesManager preferencesManager;
 
-    private Logger logger = LoggerFactory.getLogger(MemberApiImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(MemberApiImpl.class);
 
     @Override
     public Optional<List<Senator>> getSenators(User user) {

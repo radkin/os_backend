@@ -38,7 +38,7 @@ public class SponsorManagerImpl implements SponsorManager {
     @Autowired
     SponsorCongressRepo sponsorCongressRepo;
 
-    private Logger logger = LoggerFactory.getLogger(SponsorManagerImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(SponsorManagerImpl.class);
 
     private static final String SENATOR_ID_NOT_FOUND = "No Senator found by ID: {}";
     private static final String INVALID_CHAMBER_NAME = "Invalid chamber please use either senator or congress";

@@ -24,7 +24,7 @@ public class UserController {
     private static final String UNABLE_TO_FIND_USER = "Unable to find User with Google UID {}";
     private static final String GOOGLE_UID = "google-uid";
     private static final String CREATING_USER = "Creating new User";
-    private Logger logger = LoggerFactory.getLogger(UserController.class);
+    private final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
     private UserManager userManager;

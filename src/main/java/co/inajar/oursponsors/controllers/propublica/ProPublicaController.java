@@ -28,7 +28,7 @@ public class ProPublicaController {
 
     private static final String UNABLE_TO_FIND_USER = "Unable to find User with Google UID {}";
     private static final String GOOGLE_UID = "google-uid";
-    private Logger logger = LoggerFactory.getLogger(ProPublicaController.class);
+    private final Logger logger = LoggerFactory.getLogger(ProPublicaController.class);
 
     @Autowired
     private UserManager userManager;

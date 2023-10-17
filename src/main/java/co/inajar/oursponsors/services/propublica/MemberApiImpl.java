@@ -38,12 +38,12 @@ public class MemberApiImpl implements MemberApiManager {
 
     private static final String BASE_API_URL = "https://api.propublica.org";
 
-    private Logger logger = LoggerFactory.getLogger(MemberApiImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(MemberApiImpl.class);
 
     // Senate
     @Override
     public List<ProPublicaSenator> getSenatorsListResponse() {
-        String path = String.format("congress/v1/117/senate/members.json");
+        String path = "congress/v1/117/senate/members.json";
         WebClient webClient = createWebClient();
 
         String response = webClient.get()
@@ -192,7 +192,7 @@ public class MemberApiImpl implements MemberApiManager {
     // Congress
     @Override
     public List<ProPublicaCongress> getCongressListResponse() {
-        String path = String.format("congress/v1/117/house/members.json");
+        String path = "congress/v1/117/house/members.json";
         WebClient webClient = createWebClient();
 
         String response = webClient.get()

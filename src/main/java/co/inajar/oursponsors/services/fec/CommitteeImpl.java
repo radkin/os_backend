@@ -186,11 +186,9 @@ public class CommitteeImpl implements CommitteeManager {
 
     public Committee createCommittee(Object entity, String cmte) {
         var committee = new Committee();
-        if (entity instanceof Senator) {
-            Senator senator = (Senator) entity;
+        if (entity instanceof Senator senator) {
             committee.setPpId(senator.getProPublicaId());
-        } else if (entity instanceof Congress) {
-            Congress congress = (Congress) entity;
+        } else if (entity instanceof Congress congress) {
             committee.setPpId(congress.getProPublicaId());
         }
         committee.setTwoYearTransactionPeriod(calcTwoYearTransactionPeriod(entity));
@@ -199,11 +197,9 @@ public class CommitteeImpl implements CommitteeManager {
     }
 
     private Integer calcTwoYearTransactionPeriod(Object entity) {
-        if (entity instanceof Senator) {
-            Senator senator = (Senator) entity;
+        if (entity instanceof Senator senator) {
             return Integer.parseInt(senator.getNextElection()) - 2;
-        } else if (entity instanceof Congress) {
-            Congress congress = (Congress) entity;
+        } else if (entity instanceof Congress congress) {
             return Integer.parseInt(congress.getNextElection()) - 2;
         }
         return 0;
