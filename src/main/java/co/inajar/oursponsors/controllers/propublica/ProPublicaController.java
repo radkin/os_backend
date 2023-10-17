@@ -45,10 +45,11 @@ public class ProPublicaController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "get_senators")
     public ResponseEntity<List<SenatorResponse>> getSenators(@RequestHeader Map<String, String> headers) {
+        String googleUid = headers.get(GOOGLE_UID);
         var response = new ArrayList<SenatorResponse>();
         var httpResponse = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByGoogleUid(googleUid);
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
             var possibleSenators = memberManager.getSenators(user);
@@ -59,7 +60,7 @@ public class ProPublicaController {
                 response.addAll(list);
             }
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, googleUid);
         }
         return new ResponseEntity<>(response, httpResponse);
     }
@@ -67,10 +68,11 @@ public class ProPublicaController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "get_senator_details/{id}")
     public ResponseEntity<SenatorDetailsResponse> getSenatorDetails(@PathVariable String id, @RequestHeader Map<String, String> headers) {
+        String googleUid = headers.get(GOOGLE_UID);
         var response = new SenatorDetailsResponse();
         var httpStatus = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByGoogleUid(googleUid);
         if (possibleUser.isPresent()) {
             var preferences = preferencesManager.getPreferencesByUserId(possibleUser.get().getId());
             var possibleSenator = memberManager.getSenatorById(Long.valueOf(id));
@@ -82,7 +84,7 @@ public class ProPublicaController {
                 }
             }
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, googleUid);
         }
 
 
@@ -95,10 +97,11 @@ public class ProPublicaController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "get_mini_senators")
     public ResponseEntity<List<MiniSenatorResponse>> getMiniSenators(@RequestHeader Map<String, String> headers) {
+        String googleUid = headers.get(GOOGLE_UID);
         var response = new ArrayList<MiniSenatorResponse>();
         var httpResponse = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByGoogleUid(googleUid);
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
             var possibleSenators = memberManager.getSenators(user);
@@ -109,7 +112,7 @@ public class ProPublicaController {
                 response.addAll(list);
             }
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, googleUid);
         }
         return new ResponseEntity<>(response, httpResponse);
     }
@@ -117,10 +120,11 @@ public class ProPublicaController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "get_congress")
     public ResponseEntity<List<CongressResponse>> getCongresses(@RequestHeader Map<String, String> headers) {
+        String googleUid = headers.get(GOOGLE_UID);
         var response = new ArrayList<CongressResponse>();
         var httpResponse = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByGoogleUid(googleUid);
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
             var possibleCongress = memberManager.getCongress(user);
@@ -131,7 +135,7 @@ public class ProPublicaController {
                 response.addAll(list);
             }
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, googleUid);
         }
         return new ResponseEntity<>(response, httpResponse);
     }
@@ -141,10 +145,11 @@ public class ProPublicaController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "get_mini_congress")
     public ResponseEntity<List<MiniCongressResponse>> getMiniCongresses(@RequestHeader Map<String, String> headers) {
+        String googleUid = headers.get(GOOGLE_UID);
         var response = new ArrayList<MiniCongressResponse>();
         var httpResponse = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByGoogleUid(googleUid);
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
             var possibleCongress = memberManager.getCongress(user);
@@ -155,7 +160,7 @@ public class ProPublicaController {
                 response.addAll(list);
             }
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, googleUid);
         }
         return new ResponseEntity<>(response, httpResponse);
     }
@@ -163,10 +168,11 @@ public class ProPublicaController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "get_congress_details/{id}")
     public ResponseEntity<CongressDetailsResponse> getCongressDetails(@PathVariable String id, @RequestHeader Map<String, String> headers) {
+        String googleUid = headers.get(GOOGLE_UID);
         var response = new CongressDetailsResponse();
         var httpStatus = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByGoogleUid(googleUid);
         if (possibleUser.isPresent()) {
             var preferences = preferencesManager.getPreferencesByUserId(possibleUser.get().getId());
             var possibleCongress = memberManager.getCongressById(Long.valueOf(id));
@@ -178,10 +184,8 @@ public class ProPublicaController {
                 }
             }
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, googleUid);
         }
-
-
         return new ResponseEntity<>(response, httpStatus);
     }
 
