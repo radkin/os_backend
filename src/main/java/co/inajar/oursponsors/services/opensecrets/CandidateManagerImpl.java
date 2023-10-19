@@ -1,19 +1,13 @@
 package co.inajar.oursponsors.services.opensecrets;
 
-import co.inajar.oursponsors.dbos.entities.SponsorSenator;
 import co.inajar.oursponsors.dbos.entities.campaigns.Committee;
 import co.inajar.oursponsors.dbos.entities.campaigns.Donation;
 import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
 import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
-import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.dbos.repos.CommitteeRepo;
-import co.inajar.oursponsors.dbos.repos.SponsorSenatorsRepo;
 import co.inajar.oursponsors.dbos.repos.fec.DonationRepo;
-import co.inajar.oursponsors.dbos.repos.fec.SponsorsRepo;
-import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
-import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
@@ -24,7 +18,9 @@ import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.CommitteeResponse;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
-import co.inajar.oursponsors.services.fec.CommitteesApiManager;
+import co.inajar.oursponsors.services.fec.CommitteeManager;
+import co.inajar.oursponsors.services.fec.DonationManager;
+import co.inajar.oursponsors.services.fec.SponsorManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,21 +52,24 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-public class CandidatesApiImpl implements CandidatesApiManager {
+public class CandidateManagerImpl implements CandidateManager {
+    private static final String CREATING_DONATIONS = "creating new donations {}";
     private static final String NO_CONTRIBUTOR_FOUND = "No Contributor found! {}";
     private static final String OPEN_SECRETS_CLIENT_PROBLEM = "Problem with client request to OpenSecrets.org CID: {}";
     private static final String UNABLE_TO_SLEEP = "Unable to sleep";
     private static final String CALL_LIMIT_REACHED = "Very Likely OpenSecretsOrg saying - call limit has been reached";
     private static final String SCRAPE_OPEN_SECRETS_CAMPAIGN_PAGE = "Unable to scrape opensecrets presidential race campaign data";
-    private static final String SENATOR_ID_NOT_FOUND = "No Senator found by ID: {}";
-    private static final String INVALID_CHAMBER_NAME = "Invalid chamber please use either senator or congress";
+
     // temporary
 //    private static final String NON_PRESIDENTIAL_CANDIDATE = "Cannot scrape opensecrets for non-presidential candidate fundraising data";
-    private final Logger logger = LoggerFactory.getLogger(CandidatesApiImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(CandidateManagerImpl.class);
+
     @Autowired
-    private SectorRepo sectorRepo;
+    private SponsorManager sponsorManager;
     @Autowired
-    private ContributorRepo contributorRepo;
+    private ContributorManager contributorManager;
+    @Autowired
+    private DonationManager donationManager;
     @Autowired
     private SenatorRepo senatorRepo;
     @Autowired
@@ -78,35 +77,39 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     @Autowired
     private CommitteeRepo committeeRepo;
     @Autowired
-    private SponsorsRepo sponsorsRepo;
-    @Autowired
     private DonationRepo donationRepo;
     @Autowired
-    private SponsorSenatorsRepo sponsorSenatorsRepo;
-    @Autowired
-    private CommitteesApiManager committeesApiManager;
+    private CommitteeManager committeeManager;
     @Value("${opensecrets.inajar.token.secret}")
     private String opensecretsApiKey;
 
     @Override
     public List<OpenSecretsSector> getSectorsListResponse(Integer part) {
-        var openSecretsSectors = new ArrayList<OpenSecretsSector>();
-        // get a list of all cids in propublica table
-        // Todo: This should be a one off SQL query not a pull of all Members
-        var chunk = gatherCids();
-        var chunkPart = chunk.get(part);
-        for (var cid : chunkPart) {
-            // one CID to many sectors
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (Exception e) {
-                logger.error(UNABLE_TO_SLEEP, e);
-            }
-            var possibleSectors = Optional.ofNullable(getOpenSecretsSector(cid));
-            possibleSectors.ifPresent(openSecretsSectors::addAll);
+        List<OpenSecretsSector> openSecretsSectors = new ArrayList<>();
+
+        List<String> chunkPart = getChunkPart(part);
+        for (String cid : chunkPart) {
+            sleepForOneSecond(); // Handle InterruptedException properly
+
+            List<OpenSecretsSector> sectors = getOpenSecretsSector(cid);
+            openSecretsSectors.addAll(sectors);
         }
 
         return openSecretsSectors;
+    }
+
+    private List<String> getChunkPart(Integer part) {
+        List<List<String>> chunk = gatherCids();
+        return chunk.get(part);
+    }
+
+    private void sleepForOneSecond() {
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error(UNABLE_TO_SLEEP, e);
+        }
     }
 
     private List<List<String>> gatherCids() {
@@ -183,13 +186,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return new ReactorClientHttpConnector(httpClient);
     }
 
-    @Override
-    public List<Sector> mapOpenSecretsResponseToSectors(List<OpenSecretsSector> sectors) {
-        // for now every sector is a new one. We are not set up for updates. Delete all prior to refresh
-        return sectors.parallelStream()
-                .map(this::createSector)
-                .toList();
-    }
+
 
     @Override
     public List<OpenSecretsSector> getOpenSecretsSector(String cid) {
@@ -274,7 +271,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     public List<Contributor> mapOpenSecretsResponseToContributors(List<OpenSecretsContributor> contributors) {
         // for now every contributor is a new one. We are not set up for updates. Delete all prior to refresh
         return contributors.parallelStream()
-                .map(this::createContributor)
+                .map(contributorManager::createContributor)
                 .toList();
     }
 
@@ -332,11 +329,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         List<SponsorResponse> sponsorResponses = newSponsors.parallelStream()
                 .map(SponsorResponse::new)
                 .toList();
-
-        List<MiniDonationResponse> donationResponses = newSponsors.parallelStream()
-                .flatMap(sponsor -> sponsor.getDonations().stream())
-                .map(MiniDonationResponse::new)
-                .toList();
+        List<MiniDonationResponse> donationResponses = donationManager.mapDonationResponses(newSponsors);
 
         CampaignResponse campaignResponse = new CampaignResponse();
         campaignResponse.setCommittees(committeeResponses);
@@ -348,10 +341,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     // This works for everyone
 
 
-    @Override
-    public List<Committee> getCommittees() {
-        return committeeRepo.findAll();
-    }
+
 
     private List<String> scrapeCmteUrls(CommitteeRequest data) {
         List<String> cmtes = new ArrayList<>();
@@ -381,6 +371,8 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return cmtes;
     }
 
+    // Note: this is not the same as committeeManager.createCommittee.
+    // ToDo: rename or refactor to use the one in committeeManager
     private Committee createCommittee(CommitteeRequest data, String cmte) {
         var committee = new Committee();
         committee.setPpId(data.getPpId());
@@ -393,18 +385,20 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return committees.parallelStream()
                 .collect(Collectors.toMap(
                         Committee::getFecCommitteeId,
-                        cmte -> committeesApiManager.getFecCommitteeDonors(cmte.getFecCommitteeId(), data.getTwoYearTransactionPeriod())
+                        cmte -> committeeManager.getFecCommitteeDonors(cmte.getFecCommitteeId(), data.getTwoYearTransactionPeriod())
                 ));
     }
 
+    // Note: this is not the same as SponsorsManager.processDonorsAndGetNewSponsors.
+    // ToDo: rename or refactor to use the one in sponsorsManager
     private List<Sponsor> processDonorsAndGetNewSponsors(CommitteeRequest data, Map<String, List<FecCommitteeDonor>> cmteFecDonors) {
         List<Sponsor> newSponsors = new ArrayList<>();
         List<Donation> donations = new ArrayList<>();
         cmteFecDonors.forEach((cmte, donorList) -> donorList.forEach(d -> {
-            Optional<Sponsor> possibleExistingSponsor = getSponsorByName(d.getContributorName());
+            Optional<Sponsor> possibleExistingSponsor = sponsorManager.getSponsorByName(d.getContributorName());
             Sponsor sponsor;
             if (possibleExistingSponsor.isEmpty()) {
-                sponsor = mapFecDonorToSponsor(d, data.getChamber(), data.getOsId());
+                sponsor = sponsorManager.mapFecDonorToSponsor(d, data.getOsId(), data.getChamber());
                 newSponsors.add(sponsor);
             } else {
                 BigDecimal possibleExistingSponsorYtd = possibleExistingSponsor.get().getContributorAggregateYtd();
@@ -414,7 +408,8 @@ public class CandidatesApiImpl implements CandidatesApiManager {
                     sponsor.setContributorAggregateYtd(possibleExistingSponsorYtd);
                 }
             }
-            donations.add(mapFecDonorToDonation(d, sponsor, data.getPpId()));
+            donations.add(donationManager.mapFecDonorToDonation(d, sponsor, data.getPpId()));
+            logger.info(CREATING_DONATIONS, donations);
         }));
         return newSponsors;
     }
@@ -433,92 +428,4 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         }
         return null; // Return null if "cmte" not found
     }
-
-    private Optional<Sponsor> getSponsorByName(String name) {
-        return Optional.ofNullable(sponsorsRepo.findByContributorName(name));
-    }
-
-    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, String chamber, Long osId) {
-        var newSponsor = new Sponsor();
-        var receiptAmount = new BigDecimal(donor.getContributionReceiptAmount());
-        newSponsor.setContributionReceiptAmount(receiptAmount);
-        newSponsor.setContributionReceiptDate(donor.getContributionReceiptDate());
-        var aggregateAmount = new BigDecimal(donor.getContributorAggregateYtd());
-        newSponsor.setContributorAggregateYtd(aggregateAmount);
-        newSponsor.setContributorCity(donor.getContributorCity());
-        newSponsor.setContributorEmployer(donor.getContributorEmployer());
-        newSponsor.setContributorFirstName(donor.getContributorFirstName());
-        newSponsor.setContributorLastName(donor.getContributorLastName());
-        newSponsor.setContributorMiddleName(donor.getContributorMiddleName());
-        newSponsor.setContributorName(donor.getContributorName());
-        newSponsor.setContributorOccupation(donor.getContributorOccupation());
-        newSponsor.setContributorState(donor.getContributorState());
-        newSponsor.setContributorStreet1(donor.getContributorStreet1());
-        newSponsor.setContributorStreet2(donor.getContributorStreet2());
-        newSponsor.setContributorZip(donor.getContributorZip());
-
-        if (chamber.equals("senator")) {
-            var possibleSenator = Optional.of(senatorRepo.getById(osId));
-            if (possibleSenator.isPresent()) {
-                // add new sponsor
-                Senator senator = possibleSenator.get();
-                sponsorsRepo.save(newSponsor);
-                // add sponsorSenator ManyToMany
-                SponsorSenator sponsorSenator = new SponsorSenator();
-                sponsorSenator.setSponsor(newSponsor);
-                sponsorSenator.setSenator(senator);
-                sponsorSenatorsRepo.save(sponsorSenator);
-            } else {
-                logger.info(SENATOR_ID_NOT_FOUND, osId);
-            }
-        } else {
-            logger.info(INVALID_CHAMBER_NAME);
-        }
-        return newSponsor;
-    }
-
-    private Donation mapFecDonorToDonation(FecCommitteeDonor donor, Sponsor sponsor, String ppId) {
-        var newDonation = new Donation();
-        newDonation.setDateOfDonation(LocalDate.parse(donor.getContributionReceiptDate()));
-        BigDecimal donation = new BigDecimal(donor.getContributionReceiptAmount());
-        newDonation.setAmount(donation);
-        newDonation.setSponsor(sponsor);
-        newDonation.setPpId(ppId);
-        return donationRepo.save(newDonation);
-    }
-
-    private Contributor createContributor(OpenSecretsContributor openSecretsContributor) {
-        var newContributor = new Contributor();
-        var nc = setContributor(newContributor, openSecretsContributor);
-        return contributorRepo.save(nc);
-    }
-
-    private Contributor setContributor(Contributor contributor, OpenSecretsContributor osc) {
-        contributor.setCid(osc.getCid());
-        contributor.setCycle(osc.getCycle());
-        contributor.setOrgName(osc.getOrgName());
-        contributor.setContributorId(osc.getContributorId());
-        contributor.setIndivs(Integer.valueOf(osc.getIndivs()));
-        contributor.setPacs(Integer.valueOf(osc.getPacs()));
-        contributor.setTotal(Integer.valueOf(osc.getTotal()));
-        return contributor;
-    }
-
-    private Sector createSector(OpenSecretsSector openSecretsSector) {
-        var newSector = new Sector();
-        var ns = setSector(newSector, openSecretsSector);
-        return sectorRepo.save(ns);
-    }
-
-    private Sector setSector(Sector sector, OpenSecretsSector oss) {
-        sector.setCid(oss.getCid());
-        sector.setCycle(oss.getCycle());
-        sector.setSectorName(oss.getSectorName());
-        sector.setSectorId(oss.getSectorId());
-        sector.setIndivs(Integer.valueOf(oss.getIndivs()));
-        sector.setPacs(Integer.valueOf(oss.getPacs()));
-        sector.setTotal(Integer.valueOf(oss.getTotal()));
-        return sector;
-    }
-
 }

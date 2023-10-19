@@ -1,7 +1,10 @@
 package co.inajar.oursponsors.dbos.entities.chambers;
 
 import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -9,6 +12,9 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "senators")
 @Data

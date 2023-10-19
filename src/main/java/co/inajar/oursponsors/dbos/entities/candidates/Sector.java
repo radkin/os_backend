@@ -1,9 +1,15 @@
 package co.inajar.oursponsors.dbos.entities.candidates;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "sectors")
 @Data

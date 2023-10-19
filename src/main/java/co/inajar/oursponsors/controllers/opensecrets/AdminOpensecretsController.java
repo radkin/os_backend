@@ -4,7 +4,8 @@ import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
 import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.contributor.ContributorResponse;
 import co.inajar.oursponsors.models.opensecrets.sector.SectorResponse;
-import co.inajar.oursponsors.services.opensecrets.CandidatesApiManager;
+import co.inajar.oursponsors.services.opensecrets.CandidateManager;
+import co.inajar.oursponsors.services.opensecrets.SectorManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,10 @@ import java.util.List;
 public class AdminOpensecretsController {
 
     @Autowired
-    private CandidatesApiManager candidatesApiManager;
+    private CandidateManager candidateManager;
+
+    @Autowired
+    private SectorManager sectorManager;
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "download_sectors/{part}")
@@ -27,8 +31,8 @@ public class AdminOpensecretsController {
         // There are 400 and some change, total CIDs. Part 5 was 500 rows
         // as opensecrets.org only allows 200 downloads per day.
         var httpStatus = HttpStatus.OK;
-        var sectorResponses = candidatesApiManager.getSectorsListResponse(part);
-        var response = candidatesApiManager.mapOpenSecretsResponseToSectors(sectorResponses).stream()
+        var sectorResponses = candidateManager.getSectorsListResponse(part);
+        var response = sectorManager.mapOpenSecretsResponseToSectors(sectorResponses).stream()
                 .map(SectorResponse::new)
                 .toList();
         return new ResponseEntity<>(response, httpStatus);
@@ -41,21 +45,19 @@ public class AdminOpensecretsController {
         // There are 400 and some change, total CIDs. Part 5 was 500 rows
         // as opensecrets.org only allows 200 downloads per day.
         var httpStatus = HttpStatus.OK;
-        var contributorResponses = candidatesApiManager.getContributorsListResponse(part);
-        var response = candidatesApiManager.mapOpenSecretsResponseToContributors(contributorResponses).stream()
+        var contributorResponses = candidateManager.getContributorsListResponse(part);
+        var response = candidateManager.mapOpenSecretsResponseToContributors(contributorResponses).stream()
                 .map(ContributorResponse::new)
                 .toList();
         return new ResponseEntity<>(response, httpStatus);
     }
 
     /* NOTE: this is really both OpenSecrets and FEC */
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated")
     @PostMapping(path = "download_campaign")
     public ResponseEntity<CampaignResponse> downloadCampaign(@RequestBody CommitteeRequest data) {
-        var response = new CampaignResponse();
-        var httpStatus = HttpStatus.OK;
-        response = candidatesApiManager.getPresidentialCampaignListResponse(data);
-
-        return new ResponseEntity<>(response, httpStatus);
+        CampaignResponse response = candidateManager.getPresidentialCampaignListResponse(data);
+        return ResponseEntity.ok(response);
     }
+
 }

@@ -7,7 +7,7 @@ import co.inajar.oursponsors.models.propublica.senator.ProPublicaSenator;
 
 import java.util.List;
 
-public interface MembersApiManager {
+public interface MemberApiManager {
 
     List<ProPublicaSenator> getSenatorsListResponse();
 

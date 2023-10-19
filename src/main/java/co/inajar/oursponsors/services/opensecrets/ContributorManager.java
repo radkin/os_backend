@@ -1,15 +1,14 @@
 package co.inajar.oursponsors.services.opensecrets;
 
-
 import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
-import co.inajar.oursponsors.dbos.entities.candidates.Sector;
+import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface CandidatesManager {
+public interface ContributorManager {
 
-    Optional<List<Sector>> getSectorsByCid(String cid);
-
+    Contributor createContributor(OpenSecretsContributor openSecretsContributor);
     Optional<List<Contributor>> getContributorsByCid(String cid);
+
 }
