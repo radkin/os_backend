@@ -54,14 +54,7 @@ public class SponsorManagerImpl implements SponsorManager {
                     List<Long> sponsorIds = sponsorSenators.parallelStream()
                             .map(Sponsor::getId)
                             .toList();
-                    var sponsors = sponsorIds.parallelStream()
-                            .map(this::getSponsorById)
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .toList();
-                    return sponsors.stream()
-                            .sorted(Comparator.comparing(Sponsor::getContributorAggregateYtd).reversed())
-                            .toList();
+                    return gatherRelatedSponsors(sponsorIds);
                 }
             }
         } else if (data.getChamber().equals("congress")) {
@@ -75,20 +68,24 @@ public class SponsorManagerImpl implements SponsorManager {
                     List<Long> sponsorIds = sponsorCongress.parallelStream()
                             .map(Sponsor::getId)
                             .toList();
-                    var sponsors = sponsorIds.parallelStream()
-                            .map(this::getSponsorById)
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .toList();
-                    return sponsors.stream()
-                            .sorted(Comparator.comparing(Sponsor::getContributorAggregateYtd).reversed())
-                            .toList();
+                    return gatherRelatedSponsors(sponsorIds);
                 }
             }
         } else {
             logger.error("Unable to process request. Chamber and ID are required");
         }
         return Collections.emptyList();
+    }
+
+    private List<Sponsor> gatherRelatedSponsors(List<Long> sponsorIds) {
+        var sponsors = sponsorIds.parallelStream()
+                .map(this::getSponsorById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
+        return sponsors.stream()
+                .sorted(Comparator.comparing(Sponsor::getContributorAggregateYtd).reversed())
+                .toList();
     }
 
     private Optional<Sponsor> getSponsorById(Long id) {

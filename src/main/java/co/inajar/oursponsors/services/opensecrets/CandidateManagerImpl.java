@@ -19,6 +19,7 @@ import co.inajar.oursponsors.models.opensecrets.CommitteeResponse;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
 import co.inajar.oursponsors.services.fec.CommitteeManager;
+import co.inajar.oursponsors.services.fec.DonationManager;
 import co.inajar.oursponsors.services.fec.SponsorManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -67,6 +68,8 @@ public class CandidateManagerImpl implements CandidateManager {
     private SponsorManager sponsorManager;
     @Autowired
     private ContributorManager contributorManager;
+    @Autowired
+    private DonationManager donationManager;
     @Autowired
     private SenatorRepo senatorRepo;
     @Autowired
@@ -326,11 +329,7 @@ public class CandidateManagerImpl implements CandidateManager {
         List<SponsorResponse> sponsorResponses = newSponsors.parallelStream()
                 .map(SponsorResponse::new)
                 .toList();
-
-        List<MiniDonationResponse> donationResponses = newSponsors.parallelStream()
-                .flatMap(sponsor -> sponsor.getDonations().stream())
-                .map(MiniDonationResponse::new)
-                .toList();
+        List<MiniDonationResponse> donationResponses = donationManager.mapDonationResponses(newSponsors);
 
         CampaignResponse campaignResponse = new CampaignResponse();
         campaignResponse.setCommittees(committeeResponses);
@@ -409,7 +408,7 @@ public class CandidateManagerImpl implements CandidateManager {
                     sponsor.setContributorAggregateYtd(possibleExistingSponsorYtd);
                 }
             }
-            donations.add(mapFecDonorToDonation(d, sponsor, data.getPpId()));
+            donations.add(donationManager.mapFecDonorToDonation(d, sponsor, data.getPpId()));
             logger.info(CREATING_DONATIONS, donations);
         }));
         return newSponsors;
@@ -428,15 +427,5 @@ public class CandidateManagerImpl implements CandidateManager {
             }
         }
         return null; // Return null if "cmte" not found
-    }
-
-    private Donation mapFecDonorToDonation(FecCommitteeDonor donor, Sponsor sponsor, String ppId) {
-        var newDonation = new Donation();
-        newDonation.setDateOfDonation(LocalDate.parse(donor.getContributionReceiptDate()));
-        BigDecimal donation = new BigDecimal(donor.getContributionReceiptAmount());
-        newDonation.setAmount(donation);
-        newDonation.setSponsor(sponsor);
-        newDonation.setPpId(ppId);
-        return donationRepo.save(newDonation);
     }
 }

@@ -42,6 +42,9 @@ public class CommitteeImpl implements CommitteeManager {
     @Autowired
     private SponsorManager sponsorManager;
 
+    @Autowired
+    private DonationManager donationManager;
+
     @Override
     public List<Committee> getCommittees() {
         return committeeRepo.findAll();
@@ -55,27 +58,29 @@ public class CommitteeImpl implements CommitteeManager {
 
     @Override
     public CampaignResponse getSenatorCampaignListResponse(Senator senator) {
-        CampaignResponse campaignResponse = new CampaignResponse();
         String cmte = getFecCommitteeIdFromProPublicaCandidateId(senator.getFecCandidateId());
         Committee committee = createCommittee(senator, cmte);
         Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee);
         List<Sponsor> newSponsors = sponsorManager.processDonorsAndGetNewSponsors("senator", senator.getId(), senator.getProPublicaId(), cmteFecDonors);
-        campaignResponse.setCommittees(Collections.singletonList(new CommitteeResponse(committee)));
-        campaignResponse.setSponsors(mapSponsorResponses(newSponsors));
-        campaignResponse.setDonations(mapDonationResponses(newSponsors));
-        return campaignResponse;
+        var committeeResponse = Collections.singletonList(new CommitteeResponse(committee));
+        return createCampaignResponse(committeeResponse, newSponsors);
     }
 
     @Override
     public CampaignResponse getCongressCampaignListResponse(Congress congress) {
-        CampaignResponse campaignResponse = new CampaignResponse();
         String cmte = getFecCommitteeIdFromProPublicaCandidateId(congress.getFecCandidateId());
         Committee committee = createCommittee(congress, cmte);
         Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee);
         List<Sponsor> newSponsors = sponsorManager.processDonorsAndGetNewSponsors("congress", congress.getId(), congress.getProPublicaId(), cmteFecDonors);
-        campaignResponse.setCommittees(Collections.singletonList(new CommitteeResponse(committee)));
+        var committeeResponse = Collections.singletonList(new CommitteeResponse(committee));
+        return createCampaignResponse(committeeResponse, newSponsors);
+    }
+
+    private CampaignResponse createCampaignResponse(List<CommitteeResponse> committeeResponse, List<Sponsor> newSponsors) {
+        CampaignResponse campaignResponse = new CampaignResponse();
+        campaignResponse.setCommittees(committeeResponse);
         campaignResponse.setSponsors(mapSponsorResponses(newSponsors));
-        campaignResponse.setDonations(mapDonationResponses(newSponsors));
+        campaignResponse.setDonations(donationManager.mapDonationResponses(newSponsors));
         return campaignResponse;
     }
 
@@ -232,13 +237,6 @@ public class CommitteeImpl implements CommitteeManager {
     private List<SponsorResponse> mapSponsorResponses(List<Sponsor> sponsors) {
         return sponsors.parallelStream()
                 .map(SponsorResponse::new)
-                .toList();
-    }
-
-    private List<MiniDonationResponse> mapDonationResponses(List<Sponsor> sponsors) {
-        return sponsors.parallelStream()
-                .flatMap(sponsor -> sponsor.getDonations().stream())
-                .map(MiniDonationResponse::new)
                 .toList();
     }
 }

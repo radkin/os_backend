@@ -42,14 +42,20 @@ public class MemberImpl implements MemberManager {
     @Override
     public Optional<List<Senator>> getSenators(User user) {
         var preferences = preferencesManager.getPreferencesByUserId(user.getId());
-        if (Boolean.TRUE.equals(preferences.getMyStateOnly()) && Boolean.TRUE.equals(!preferences.getMyPartyOnly()))
-            return senatorRepo.findSenatorsByState(user.getState());
-        if (Boolean.TRUE.equals(preferences.getMyPartyOnly()) && Boolean.TRUE.equals(!preferences.getMyStateOnly()))
-            return senatorRepo.findSenatorsByParty(user.getParty());
-        if (preferences.getMyStateOnly() && preferences.getMyPartyOnly())
+        boolean stateOnly = Boolean.TRUE.equals(preferences.getMyStateOnly());
+        boolean partyOnly = Boolean.TRUE.equals(preferences.getMyPartyOnly());
+
+        if (stateOnly && partyOnly) {
             return senatorRepo.findSenatorsByStateAndParty(user.getState(), user.getParty());
+        } else if (stateOnly) {
+            return senatorRepo.findSenatorsByState(user.getState());
+        } else if (partyOnly) {
+            return senatorRepo.findSenatorsByParty(user.getParty());
+        }
+
         return Optional.of(senatorRepo.findAll());
     }
+
 
     @Override
     public Optional<Senator> getSenatorById(Long id) {
@@ -59,12 +65,17 @@ public class MemberImpl implements MemberManager {
     @Override
     public Optional<List<Congress>> getCongress(User user) {
         var preferences = preferencesManager.getPreferencesByUserId(user.getId());
-        if (Boolean.TRUE.equals(preferences.getMyStateOnly()) && Boolean.TRUE.equals(!preferences.getMyPartyOnly()))
-            return congressRepo.findCongressesByState(user.getState());
-        if (Boolean.TRUE.equals(preferences.getMyPartyOnly()) && Boolean.TRUE.equals(!preferences.getMyStateOnly()))
-            return congressRepo.findCongressesByParty(user.getParty());
-        if (preferences.getMyStateOnly() && preferences.getMyPartyOnly())
+        boolean stateOnly = Boolean.TRUE.equals(preferences.getMyStateOnly());
+        boolean partyOnly = Boolean.TRUE.equals(preferences.getMyPartyOnly());
+
+        if (stateOnly && partyOnly) {
             return congressRepo.findCongressesByStateAndParty(user.getState(), user.getParty());
+        } else if (stateOnly) {
+            return congressRepo.findCongressesByState(user.getState());
+        } else if (partyOnly) {
+            return congressRepo.findCongressesByParty(user.getParty());
+        }
+
         return Optional.of(congressRepo.findAll());
     }
 

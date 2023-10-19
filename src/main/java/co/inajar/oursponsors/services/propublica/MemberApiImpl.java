@@ -42,8 +42,18 @@ public class MemberApiImpl implements MemberApiManager {
 
     // Senate
     @Override
+    public List<ProPublicaCongress> getCongressListResponse() {
+        String path = "congress/v1/117/house/members.json";
+        return fetchAndMapProPublicaMembers(path, ProPublicaCongress.class);
+    }
+
+    @Override
     public List<ProPublicaSenator> getSenatorsListResponse() {
         String path = "congress/v1/117/senate/members.json";
+        return fetchAndMapProPublicaMembers(path, ProPublicaSenator.class);
+    }
+
+    private <T> List<T> fetchAndMapProPublicaMembers(String path, Class<T> responseType) {
         WebClient webClient = createWebClient();
 
         String response = webClient.get()
@@ -52,8 +62,25 @@ public class MemberApiImpl implements MemberApiManager {
                 .bodyToMono(String.class)
                 .block();
 
-        return mapSenatorResponseToModel(response);
+        return mapResponseToModel(response, responseType);
     }
+
+    private <T> List<T> mapResponseToModel(String response, Class<T> responseType) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<T> members = new ArrayList<>();
+        try {
+            var tree = objectMapper.readTree(response);
+            var membersResponse = tree.get("results");
+            for (JsonNode jsonNode : membersResponse) {
+                T member = objectMapper.treeToValue(jsonNode, responseType);
+                members.add(member);
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return members;
+    }
+
 
     private WebClient createWebClient() {
         return WebClient.builder()
@@ -63,25 +90,6 @@ public class MemberApiImpl implements MemberApiManager {
                 .baseUrl(BASE_API_URL)
                 .defaultHeader("X-API-Key", propublicaApiKey)
                 .build();
-    }
-
-    private List<ProPublicaSenator> mapSenatorResponseToModel(String response) {
-        List<ProPublicaSenator> mappedSenators = new ArrayList<>();
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            JsonNode tree = objectMapper.readTree(response);
-            JsonNode members = tree.get("results").get(0).get("members");
-            for (JsonNode jsonNode : members) {
-                try {
-                    mappedSenators.add(objectMapper.treeToValue(jsonNode, ProPublicaSenator.class));
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return mappedSenators;
     }
 
     public List<Senator> mapPropublicaResponseToSenators(List<ProPublicaSenator> senators) {
@@ -187,40 +195,6 @@ public class MemberApiImpl implements MemberApiManager {
 
     private Optional<Senator> getSenatorByPpId(String proPublicaId) {
         return senatorRepo.findFirstSenatorByProPublicaId(proPublicaId);
-    }
-
-    // Congress
-    @Override
-    public List<ProPublicaCongress> getCongressListResponse() {
-        String path = "congress/v1/117/house/members.json";
-        WebClient webClient = createWebClient();
-
-        String response = webClient.get()
-                .uri(uriBuilder -> uriBuilder.path(path).build())
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-
-        return mapCongressResponseToModel(response);
-    }
-
-    private List<ProPublicaCongress> mapCongressResponseToModel(String response) {
-        List<ProPublicaCongress> mappedCongresss = new ArrayList<>();
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            JsonNode tree = objectMapper.readTree(response);
-            JsonNode members = tree.get("results").get(0).get("members");
-            for (JsonNode jsonNode : members) {
-                try {
-                    mappedCongresss.add(objectMapper.treeToValue(jsonNode, ProPublicaCongress.class));
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return mappedCongresss;
     }
 
     public List<Congress> mapPropublicaResponseToCongress(List<ProPublicaCongress> congress) {
