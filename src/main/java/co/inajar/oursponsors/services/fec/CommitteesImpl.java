@@ -7,7 +7,7 @@ import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.dbos.repos.SponsorCongressRepo;
 import co.inajar.oursponsors.dbos.repos.SponsorSenatorsRepo;
-import co.inajar.oursponsors.dbos.repos.fec.SponsorsRepo;
+import co.inajar.oursponsors.dbos.repos.fec.SponsorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.fec.SponsorRequest;
@@ -25,7 +25,7 @@ import java.util.Optional;
 public class CommitteesImpl implements CommitteesManager {
 
     @Autowired
-    SponsorsRepo sponsorsRepo;
+    SponsorRepo sponsorRepo;
 
     @Autowired
     SenatorRepo senatorRepo;
@@ -90,6 +90,6 @@ public class CommitteesImpl implements CommitteesManager {
     }
 
     private Optional<Sponsor> getSponsorById(Long id) {
-        return sponsorsRepo.findById(id);
+        return sponsorRepo.findById(id);
     }
 }

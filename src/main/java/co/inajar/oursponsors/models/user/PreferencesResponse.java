@@ -1,6 +1,6 @@
 package co.inajar.oursponsors.models.user;
 
-import co.inajar.oursponsors.dbos.entities.user.Preferences;
+import co.inajar.oursponsors.dbos.entities.Preferences;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 

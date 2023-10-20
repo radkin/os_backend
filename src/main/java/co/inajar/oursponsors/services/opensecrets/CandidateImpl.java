@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class CandidatesImpl implements CandidatesManager {
+public class CandidateImpl implements CandidateManager {
 
     @Autowired
     private SectorRepo sectorRepo;
@@ -21,7 +21,7 @@ public class CandidatesImpl implements CandidatesManager {
     @Autowired
     private ContributorRepo contributorRepo;
 
-    private Logger logger = LoggerFactory.getLogger(CandidatesImpl.class);
+    private Logger logger = LoggerFactory.getLogger(CandidateImpl.class);
 
     @Override
     public Optional<List<Sector>> getSectorsByCid(String cid) {

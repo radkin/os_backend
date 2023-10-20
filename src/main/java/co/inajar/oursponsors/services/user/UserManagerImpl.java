@@ -1,8 +1,8 @@
 package co.inajar.oursponsors.services.user;
 
 import co.inajar.oursponsors.dbos.entities.User;
-import co.inajar.oursponsors.dbos.entities.user.Preferences;
-import co.inajar.oursponsors.dbos.repos.PreferencesRepo;
+import co.inajar.oursponsors.dbos.entities.Preferences;
+import co.inajar.oursponsors.dbos.repos.PreferenceRepo;
 import co.inajar.oursponsors.dbos.repos.UserRepo;
 import co.inajar.oursponsors.models.user.PreferencesRequest;
 import co.inajar.oursponsors.models.user.UserRequest;
@@ -21,7 +21,7 @@ public class UserManagerImpl implements UserManager {
     @Autowired
     private UserRepo userRepo;
     @Autowired
-    private PreferencesRepo preferencesRepo;
+    private PreferenceRepo preferenceRepo;
 
     @Override
     public Optional<User> getUserById(Long id) {
@@ -36,7 +36,7 @@ public class UserManagerImpl implements UserManager {
 
     @Override
     public Preferences getPreferencesByUserId(Long id) {
-        return preferencesRepo.findPreferencesByUserId(id);
+        return preferenceRepo.findPreferencesByUserId(id);
     }
 
     @Override
@@ -109,6 +109,6 @@ public class UserManagerImpl implements UserManager {
         // default preferences
         preferences.setMyPartyOnly(false);
         preferences.setMyStateOnly(false);
-        preferencesRepo.save(preferences);
+        preferenceRepo.save(preferences);
     }
 }

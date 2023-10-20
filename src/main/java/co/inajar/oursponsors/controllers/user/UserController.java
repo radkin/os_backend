@@ -5,6 +5,7 @@ import co.inajar.oursponsors.models.user.PreferencesRequest;
 import co.inajar.oursponsors.models.user.PreferencesResponse;
 import co.inajar.oursponsors.models.user.UserRequest;
 import co.inajar.oursponsors.models.user.UserResponse;
+import co.inajar.oursponsors.services.preferences.PreferenceManager;
 import co.inajar.oursponsors.services.user.UserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,9 @@ public class UserController {
     @Autowired
     private UserManager userManager;
 
+    @Autowired
+    private PreferenceManager preferenceManager;
+
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "get_preferences")
     public ResponseEntity<PreferencesResponse> getPreferences(@RequestHeader Map<String, String> headers) {
@@ -35,7 +39,7 @@ public class UserController {
         var httpResponse = HttpStatus.OK;
         var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
         if (possibleUser.isPresent()) {
-            var preferences = userManager.getPreferencesByUserId(possibleUser.get().getId());
+            var preferences = preferenceManager.getPreferencesByUserId(possibleUser.get().getId());
             response = new PreferencesResponse(preferences);
         } else {
             logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
@@ -53,7 +57,7 @@ public class UserController {
         var httpResponse = HttpStatus.OK;
         var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
         if (possibleUser.isPresent()) {
-            var preferencesUpdate = userManager.updateUserPreferences(data, possibleUser.get().getId());
+            var preferencesUpdate = preferenceManager.updateUserPreferences(data, possibleUser.get().getId());
             response = new PreferencesResponse(preferencesUpdate);
         } else {
             logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
