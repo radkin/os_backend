@@ -4,6 +4,6 @@
 
 ## IntelliJ configuration
 
-![junit test example](imagesackend_junit_test_example_intellij.png)
+![root directory](images/backend_junit_test_example_intellij.png)
 
-![run all tests example](imagesackend_test_intellij_config.png)
+![root directory](images/backend_test_intellij_config.png)
