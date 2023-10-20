@@ -3,11 +3,11 @@ package co.inajar.oursponsors.models.propublica.senator;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.models.fec.SponsorRequest;
 import co.inajar.oursponsors.models.fec.SponsorResponse;
-import co.inajar.oursponsors.services.fec.SponsorManager;
+import co.inajar.oursponsors.services.fec.CommitteesManager;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 public class MiniSenatorResponse {
 
     private static final String REPTYPE = "senator";
-    private static final String BASE_URL = "https://theunitedstates.io/images/congress/original";
 
+    private static final String BASE_URL = "https://theunitedstates.io/images/congress/original";
     @JsonProperty(value = "rep_type")
     private String repType;
-    private SponsorManager sponsorManager;
+    private CommitteesManager committeesManager;
     @JsonProperty(value = "id")
     private Long id;
     @JsonProperty(value = "title")
@@ -38,7 +38,7 @@ public class MiniSenatorResponse {
     @JsonProperty(value = "sponsors")
     private Set<SponsorResponse> sponsors;
 
-    public MiniSenatorResponse(Senator senator, SponsorManager sponsorManager) {
+    public MiniSenatorResponse(Senator senator, CommitteesManager committeesManager) {
         repType = REPTYPE;
         id = senator.getId();
         title = senator.getTitle();
@@ -47,19 +47,21 @@ public class MiniSenatorResponse {
         party = senator.getParty();
         state = senator.getState();
         imageUrl = BASE_URL + "/" + senator.getProPublicaId() + ".jpg";
-        this.sponsorManager = sponsorManager;
-        sponsors = fetchSponsors(senator);
-    }
+        this.committeesManager = committeesManager;
 
-    private Set<SponsorResponse> fetchSponsors(Senator senator) {
+        sponsors = new HashSet<>();
+
         SponsorRequest data = new SponsorRequest();
         data.setChamber("senator");
         data.setOsId(senator.getId());
-        var possibleSponsors = Optional.ofNullable(sponsorManager.getSponsors(data));
-        return possibleSponsors.orElseGet(ArrayList::new)
-                .parallelStream()
-                .map(SponsorResponse::new)
-                .limit(2)
-                .collect(Collectors.toSet());
+
+        var possibleSponsors = Optional.ofNullable(committeesManager.getSponsors(data));
+        if (possibleSponsors.isPresent()) {
+            var set = possibleSponsors.get().parallelStream()
+                    .map(SponsorResponse::new)
+                    .limit(2)
+                    .collect(Collectors.toSet());
+            sponsors.addAll(set);
+        }
     }
 }

@@ -4,10 +4,8 @@ import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.models.fec.FecCommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
-import co.inajar.oursponsors.services.fec.CommitteeManager;
-import co.inajar.oursponsors.services.propublica.MemberManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import co.inajar.oursponsors.services.fec.CommitteesApiManager;
+import co.inajar.oursponsors.services.propublica.MembersManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +21,10 @@ import java.util.Optional;
 @RequestMapping(path = "/admin/fec")
 public class AdminFECController {
 
-    private final Logger logger = LoggerFactory.getLogger(AdminFECController.class);
-    private static final String CHOOSE_SENATOR_OR_CONGRESS = "Please choose senator or congress";
-
     @Autowired
-    private CommitteeManager committeeManager;
+    private CommitteesApiManager committeesApiManager;
     @Autowired
-    private MemberManager memberManager;
+    private MembersManager membersManager;
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(path = "download_campaign")
@@ -37,17 +32,17 @@ public class AdminFECController {
         var response = new CampaignResponse();
         var httpStatus = HttpStatus.OK;
         if (data.getChamber().equals("senator")) {
-            Optional<Senator> possibleSenator = memberManager.getSenatorById(data.getOsId());
+            Optional<Senator> possibleSenator = membersManager.getSenatorById(data.getOsId());
             if (possibleSenator.isPresent()) {
-                response = committeeManager.getSenatorCampaignListResponse(possibleSenator.get());
+                response = committeesApiManager.getSenatorCampaignListResponse(possibleSenator.get());
             }
         } else if (data.getChamber().equals("congress")) {
-            Optional<Congress> possibleCongress = memberManager.getCongressById(data.getOsId());
+            Optional<Congress> possibleCongress = membersManager.getCongressById(data.getOsId());
             if (possibleCongress.isPresent()) {
-                response = committeeManager.getCongressCampaignListResponse(possibleCongress.get());
+                response = committeesApiManager.getCongressCampaignListResponse(possibleCongress.get());
             }
         } else {
-            logger.error(CHOOSE_SENATOR_OR_CONGRESS);
+            System.out.println("Please choose senator or congress");
         }
 
         return new ResponseEntity<>(response, httpStatus);
