@@ -7,7 +7,7 @@ import co.inajar.oursponsors.models.opensecrets.CampaignResponse;
 
 import java.util.List;
 
-public interface CommitteesApiManager {
+public interface CommitteeApiManager {
 
     List<FecCommitteeDonor> getFecCommitteeDonors(String committeeId, Integer twoYearTransactionPeriod);
 

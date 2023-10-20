@@ -3,8 +3,8 @@ package co.inajar.oursponsors.controllers;
 import co.inajar.oursponsors.controllers.opensecrets.OpenSecretsController;
 import co.inajar.oursponsors.dbos.entities.candidates.Contributor;
 import co.inajar.oursponsors.dbos.entities.candidates.Sector;
-import co.inajar.oursponsors.services.opensecrets.CandidatesApiManager;
-import co.inajar.oursponsors.services.opensecrets.CandidatesManager;
+import co.inajar.oursponsors.services.opensecrets.CandidateApiManager;
+import co.inajar.oursponsors.services.opensecrets.CandidateManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,10 +39,10 @@ public class OpenSecretsControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private CandidatesManager candidatesManager;
+    private CandidateManager candidateManager;
 
     @MockBean
-    private CandidatesApiManager candidatesApiManager;
+    private CandidateApiManager candidateApiManager;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -53,7 +53,7 @@ public class OpenSecretsControllerTest {
     public void testGetSectors() throws Exception {
 
         ArrayList<Sector> sectors = new ArrayList<>();
-        when(candidatesManager.getSectorsByCid(SECTOR_ID)).thenReturn(Optional.of(sectors));
+        when(candidateManager.getSectorsByCid(SECTOR_ID)).thenReturn(Optional.of(sectors));
 
         mockMvc.perform(post("/opensecrets/get_sectors")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -66,7 +66,7 @@ public class OpenSecretsControllerTest {
     public void testGetContributors() throws Exception {
 
         ArrayList<Contributor> contributors = new ArrayList<>();
-        when(candidatesManager.getContributorsByCid(SECTOR_ID)).thenReturn(Optional.of(contributors));
+        when(candidateManager.getContributorsByCid(SECTOR_ID)).thenReturn(Optional.of(contributors));
 
         mockMvc.perform(post("/opensecrets/get_contributors")
                         .contentType(MediaType.APPLICATION_JSON)

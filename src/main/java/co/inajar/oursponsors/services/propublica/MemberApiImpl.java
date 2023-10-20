@@ -26,7 +26,7 @@ import java.util.Optional;
 
 
 @Service
-public class MembersApiImpl implements MembersApiManager {
+public class MemberApiImpl implements MemberApiManager {
 
     @Autowired
     private SenatorRepo senatorRepo;
@@ -34,7 +34,7 @@ public class MembersApiImpl implements MembersApiManager {
     @Autowired
     private CongressRepo congressRepo;
 
-    private Logger logger = LoggerFactory.getLogger(MembersApiImpl.class);
+    private Logger logger = LoggerFactory.getLogger(MemberApiImpl.class);
 
     @Value("${propublica.inajar.token.secret}")
     private String propublicaApiKey;

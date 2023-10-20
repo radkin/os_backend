@@ -10,7 +10,7 @@ import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
 
 import java.util.List;
 
-public interface CandidatesApiManager {
+public interface CandidateApiManager {
 
     //    List<Sector> getSectorsListResponse();
     List<OpenSecretsSector> getSectorsListResponse(Integer part);

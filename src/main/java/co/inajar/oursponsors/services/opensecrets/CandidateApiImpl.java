@@ -11,7 +11,7 @@ import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.dbos.repos.CommitteeRepo;
 import co.inajar.oursponsors.dbos.repos.SponsorSenatorsRepo;
 import co.inajar.oursponsors.dbos.repos.fec.DonationRepo;
-import co.inajar.oursponsors.dbos.repos.fec.SponsorsRepo;
+import co.inajar.oursponsors.dbos.repos.fec.SponsorRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.ContributorRepo;
 import co.inajar.oursponsors.dbos.repos.opensecrets.SectorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
@@ -24,7 +24,7 @@ import co.inajar.oursponsors.models.opensecrets.CommitteeRequest;
 import co.inajar.oursponsors.models.opensecrets.CommitteeResponse;
 import co.inajar.oursponsors.models.opensecrets.contributor.OpenSecretsContributor;
 import co.inajar.oursponsors.models.opensecrets.sector.OpenSecretsSector;
-import co.inajar.oursponsors.services.fec.CommitteesApiManager;
+import co.inajar.oursponsors.services.fec.CommitteeApiManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-public class CandidatesApiImpl implements CandidatesApiManager {
+public class CandidateApiImpl implements CandidateApiManager {
     private static final String NO_CONTRIBUTOR_FOUND = "No Contributor found! {}";
     private static final String OPEN_SECRETS_CLIENT_PROBLEM = "Problem with client request to OpenSecrets.org CID: {}";
     private static final String UNABLE_TO_SLEEP = "Unable to sleep";
@@ -66,7 +66,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     private static final String INVALID_CHAMBER_NAME = "Invalid chamber please use either senator or congress";
     // temporary
 //    private static final String NON_PRESIDENTIAL_CANDIDATE = "Cannot scrape opensecrets for non-presidential candidate fundraising data";
-    private final Logger logger = LoggerFactory.getLogger(CandidatesApiImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(CandidateApiImpl.class);
     @Autowired
     private SectorRepo sectorRepo;
     @Autowired
@@ -78,13 +78,13 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     @Autowired
     private CommitteeRepo committeeRepo;
     @Autowired
-    private SponsorsRepo sponsorsRepo;
+    private SponsorRepo sponsorRepo;
     @Autowired
     private DonationRepo donationRepo;
     @Autowired
     private SponsorSenatorsRepo sponsorSenatorsRepo;
     @Autowired
-    private CommitteesApiManager committeesApiManager;
+    private CommitteeApiManager committeeApiManager;
     @Value("${opensecrets.inajar.token.secret}")
     private String opensecretsApiKey;
 
@@ -393,7 +393,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
         return committees.parallelStream()
                 .collect(Collectors.toMap(
                         Committee::getFecCommitteeId,
-                        cmte -> committeesApiManager.getFecCommitteeDonors(cmte.getFecCommitteeId(), data.getTwoYearTransactionPeriod())
+                        cmte -> committeeApiManager.getFecCommitteeDonors(cmte.getFecCommitteeId(), data.getTwoYearTransactionPeriod())
                 ));
     }
 
@@ -435,7 +435,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
     }
 
     private Optional<Sponsor> getSponsorByName(String name) {
-        return Optional.ofNullable(sponsorsRepo.findByContributorName(name));
+        return Optional.ofNullable(sponsorRepo.findByContributorName(name));
     }
 
     private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, String chamber, Long osId) {
@@ -462,7 +462,7 @@ public class CandidatesApiImpl implements CandidatesApiManager {
             if (possibleSenator.isPresent()) {
                 // add new sponsor
                 Senator senator = possibleSenator.get();
-                sponsorsRepo.save(newSponsor);
+                sponsorRepo.save(newSponsor);
                 // add sponsorSenator ManyToMany
                 SponsorSenator sponsorSenator = new SponsorSenator();
                 sponsorSenator.setSponsor(newSponsor);
