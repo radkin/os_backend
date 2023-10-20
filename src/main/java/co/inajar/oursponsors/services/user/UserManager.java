@@ -1,7 +1,7 @@
 package co.inajar.oursponsors.services.user;
 
 import co.inajar.oursponsors.dbos.entities.User;
-import co.inajar.oursponsors.dbos.entities.user.Preferences;
+import co.inajar.oursponsors.dbos.entities.Preferences;
 import co.inajar.oursponsors.models.user.PreferencesRequest;
 import co.inajar.oursponsors.models.user.UserRequest;
 

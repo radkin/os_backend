@@ -3,7 +3,7 @@ package co.inajar.oursponsors.services.propublica;
 import co.inajar.oursponsors.dbos.entities.User;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
-import co.inajar.oursponsors.dbos.entities.user.Preferences;
+import co.inajar.oursponsors.dbos.entities.Preferences;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.opensecrets.contributor.SmallContributorResponse;
