@@ -11,7 +11,7 @@ import co.inajar.oursponsors.dbos.repos.CommitteeRepo;
 import co.inajar.oursponsors.dbos.repos.SponsorCongressRepo;
 import co.inajar.oursponsors.dbos.repos.SponsorSenatorsRepo;
 import co.inajar.oursponsors.dbos.repos.fec.DonationRepo;
-import co.inajar.oursponsors.dbos.repos.fec.SponsorsRepo;
+import co.inajar.oursponsors.dbos.repos.fec.SponsorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
@@ -43,28 +43,16 @@ import java.util.*;
 import java.util.stream.Stream;
 
 @Service
-public class CommitteesApiImpl implements CommitteesApiManager {
+public class CommitteeApiImpl implements CommitteeApiManager {
 
-    private static final String INVALID_CHAMBER_NAME = "Invalid chamber please use either senator or congress";
-    private static final String SENATOR_ID_NOT_FOUND = "No Senator found by ID: {}";
-    private static final String CONGRESS_ID_NOT_FOUND = "No Member of Congress found by ID: {}";
-    private final Logger logger = LoggerFactory.getLogger(CommitteesApiImpl.class);
+
+    private final Logger logger = LoggerFactory.getLogger(CommitteeApiImpl.class);
     @Value("${fec.inajar.token.secret}")
     private String fecApiKey;
     @Autowired
     private CommitteeRepo committeeRepo;
     @Autowired
-    private SponsorsRepo sponsorsRepo;
-    @Autowired
-    private DonationRepo donationRepo;
-    @Autowired
-    private SenatorRepo senatorRepo;
-    @Autowired
-    private CongressRepo congressRepo;
-    @Autowired
-    private SponsorSenatorsRepo sponsorSenatorsRepo;
-    @Autowired
-    private SponsorCongressRepo sponsorCongressRepo;
+    private SponsorManager sponsorManager;
 
     @Override
     public List<FecCommitteeDonor> getFecCommitteeDonors(String committeeId, Integer twoYearTransactionPeriod) {
@@ -108,7 +96,7 @@ public class CommitteesApiImpl implements CommitteesApiManager {
         String cmte = getFecCommitteeIdFromProPublicaCandidateId(senator.getFecCandidateId());
         Committee committee = createSenatorCommittee(senator, cmte);
         Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee, senator.getNextElection());
-        List<Sponsor> newSponsors = processDonorsAndGetNewSponsors("senator", senator.getId(), senator.getProPublicaId(), cmteFecDonors);
+        List<Sponsor> newSponsors = sponsorManager.processDonorsAndGetNewSponsors("senator", senator.getId(), senator.getProPublicaId(), cmteFecDonors);
         List<CommitteeResponse> committeeResponses = Stream.of(committee)
                 .map(CommitteeResponse::new)
                 .toList();
@@ -131,7 +119,7 @@ public class CommitteesApiImpl implements CommitteesApiManager {
         String cmte = getFecCommitteeIdFromProPublicaCandidateId(congress.getFecCandidateId());
         Committee committee = createCongressCommittee(congress, cmte);
         Map<String, List<FecCommitteeDonor>> cmteFecDonors = fetchCmteFecDonors(committee, congress.getNextElection());
-        List<Sponsor> newSponsors = processDonorsAndGetNewSponsors("congress", congress.getId(), congress.getProPublicaId(), cmteFecDonors);
+        List<Sponsor> newSponsors = sponsorManager.processDonorsAndGetNewSponsors("congress", congress.getId(), congress.getProPublicaId(), cmteFecDonors);
         List<CommitteeResponse> committeeResponses = Stream.of(committee)
                 .map(CommitteeResponse::new)
                 .toList();
@@ -240,28 +228,6 @@ public class CommitteesApiImpl implements CommitteesApiManager {
         return donorMap;
     }
 
-    private List<Sponsor> processDonorsAndGetNewSponsors(String chamber, Long osId, String proPublicaId, Map<String, List<FecCommitteeDonor>> cmteFecDonors) {
-        List<Sponsor> newSponsors = new ArrayList<>();
-        List<Donation> donations = new ArrayList<>();
-        cmteFecDonors.forEach((cmte, donorList) -> donorList.forEach(d -> {
-            Optional<Sponsor> possibleExistingSponsor = getSponsorByName(d.getContributorName());
-            Sponsor sponsor;
-            if (possibleExistingSponsor.isEmpty()) {
-                sponsor = mapFecDonorToSponsor(d, osId, chamber);
-                newSponsors.add(sponsor);
-            } else {
-                BigDecimal possibleExistingSponsorYtd = possibleExistingSponsor.get().getContributorAggregateYtd();
-                BigDecimal newSponsorYtd = new BigDecimal(d.getContributorAggregateYtd());
-                sponsor = possibleExistingSponsor.get();
-                if (newSponsorYtd.compareTo(possibleExistingSponsorYtd) > 0) {
-                    sponsor.setContributorAggregateYtd(possibleExistingSponsorYtd);
-                }
-            }
-            donations.add(mapFecDonorToDonation(d, sponsor, proPublicaId));
-        }));
-        return newSponsors;
-    }
-
     private String getCandidateCommitteeId(String response) {
         String committeeId = "";
         var objectMapper = new ObjectMapper();
@@ -279,73 +245,6 @@ public class CommitteesApiImpl implements CommitteesApiManager {
             e.printStackTrace();
         }
         return committeeId;
-    }
-
-    private Optional<Sponsor> getSponsorByName(String name) {
-        return Optional.ofNullable(sponsorsRepo.findByContributorName(name));
-    }
-
-    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, Long osId, String chamber) {
-        var newSponsor = new Sponsor();
-        var receiptAmount = new BigDecimal(donor.getContributionReceiptAmount());
-        newSponsor.setContributionReceiptAmount(receiptAmount);
-        newSponsor.setContributionReceiptDate(donor.getContributionReceiptDate());
-        var aggregateAmount = new BigDecimal(donor.getContributorAggregateYtd());
-        newSponsor.setContributorAggregateYtd(aggregateAmount);
-        newSponsor.setContributorCity(donor.getContributorCity());
-        newSponsor.setContributorEmployer(donor.getContributorEmployer());
-        newSponsor.setContributorFirstName(donor.getContributorFirstName());
-        newSponsor.setContributorLastName(donor.getContributorLastName());
-        newSponsor.setContributorMiddleName(donor.getContributorMiddleName());
-        newSponsor.setContributorName(donor.getContributorName());
-        newSponsor.setContributorOccupation(donor.getContributorOccupation());
-        newSponsor.setContributorState(donor.getContributorState());
-        newSponsor.setContributorStreet1(donor.getContributorStreet1());
-        newSponsor.setContributorStreet2(donor.getContributorStreet2());
-        newSponsor.setContributorZip(donor.getContributorZip());
-
-        if (chamber.equals("senator")) {
-            var possibleSenator = Optional.of(senatorRepo.getById(osId));
-            if (possibleSenator.isPresent()) {
-                // add new sponsor
-                Senator senator = possibleSenator.get();
-                sponsorsRepo.save(newSponsor);
-                // add sponsorSenator ManyToMany
-                SponsorSenator sponsorSenator = new SponsorSenator();
-                sponsorSenator.setSponsor(newSponsor);
-                sponsorSenator.setSenator(senator);
-                sponsorSenatorsRepo.save(sponsorSenator);
-            } else {
-                logger.info(SENATOR_ID_NOT_FOUND, osId);
-            }
-        } else if (chamber.equals("congress")) {
-            var possibleCongress = Optional.of(congressRepo.getById(osId));
-            if (possibleCongress.isPresent()) {
-                // add new sponsor
-                Congress congress = possibleCongress.get();
-                sponsorsRepo.save(newSponsor);
-                // add sponsorCongress ManyToMany
-                SponsorCongress sponsorCongress = new SponsorCongress();
-                sponsorCongress.setSponsor(newSponsor);
-                sponsorCongress.setCongress(congress);
-                sponsorCongressRepo.save(sponsorCongress);
-            } else {
-                logger.info(CONGRESS_ID_NOT_FOUND, osId);
-            }
-        } else {
-            logger.info(INVALID_CHAMBER_NAME);
-        }
-        return newSponsor;
-    }
-
-    private Donation mapFecDonorToDonation(FecCommitteeDonor donor, Sponsor sponsor, String ppId) {
-        var newDonation = new Donation();
-        newDonation.setDateOfDonation(LocalDate.parse(donor.getContributionReceiptDate()));
-        BigDecimal donation = new BigDecimal(donor.getContributionReceiptAmount());
-        newDonation.setAmount(donation);
-        newDonation.setSponsor(sponsor);
-        newDonation.setPpId(ppId);
-        return donationRepo.save(newDonation);
     }
 
 }

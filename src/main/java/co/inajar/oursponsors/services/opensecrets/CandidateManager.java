@@ -7,7 +7,7 @@ import co.inajar.oursponsors.dbos.entities.candidates.Sector;
 import java.util.List;
 import java.util.Optional;
 
-public interface CandidatesManager {
+public interface CandidateManager {
 
     Optional<List<Sector>> getSectorsByCid(String cid);
 

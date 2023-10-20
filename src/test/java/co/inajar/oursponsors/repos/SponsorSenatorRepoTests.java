@@ -4,7 +4,7 @@ import co.inajar.oursponsors.dbos.entities.SponsorSenator;
 import co.inajar.oursponsors.dbos.entities.campaigns.Sponsor;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.dbos.repos.SponsorSenatorsRepo;
-import co.inajar.oursponsors.dbos.repos.fec.SponsorsRepo;
+import co.inajar.oursponsors.dbos.repos.fec.SponsorRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.helpers.NameGenerator;
 import co.inajar.oursponsors.helpers.SponsorGenerator;
@@ -29,7 +29,7 @@ public class SponsorSenatorRepoTests {
     private SenatorRepo senatorRepo;
 
     @Autowired
-    private SponsorsRepo sponsorsRepo;
+    private SponsorRepo sponsorRepo;
 
     @Autowired
     private EntityManager entityManager;
@@ -52,7 +52,7 @@ public class SponsorSenatorRepoTests {
         // create associated sponsors
         List<Sponsor> sponsors = SponsorGenerator.generateSenatorSponsors(senator);
         for (var sponsor : sponsors) {
-            sponsorsRepo.save(sponsor);
+            sponsorRepo.save(sponsor);
             SponsorSenator sponsorSenator = new SponsorSenator();
             sponsorSenator.setSenator(senator);
             sponsorSenator.setSponsor(sponsor);
@@ -69,7 +69,7 @@ public class SponsorSenatorRepoTests {
                 .map(Sponsor::getId)
                 .toList();
         List<Sponsor> detachedSponsors = sponsorIds.parallelStream()
-                .map((s) -> sponsorsRepo.getById(s))
+                .map((s) -> sponsorRepo.getById(s))
                 .toList();
 
         List<Sponsor> foundSponsors = new ArrayList<>();

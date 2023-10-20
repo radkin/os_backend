@@ -2,7 +2,7 @@ package co.inajar.oursponsors.services.preferences;
 
 import co.inajar.oursponsors.dbos.entities.Preferences;
 import co.inajar.oursponsors.dbos.entities.User;
-import co.inajar.oursponsors.dbos.repos.PreferencesRepo;
+import co.inajar.oursponsors.dbos.repos.PreferenceRepo;
 import co.inajar.oursponsors.models.user.PreferencesRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,14 +12,14 @@ import java.util.function.Consumer;
 
 @Service
 @Transactional
-public class PreferencesManagerImpl implements PreferencesManager {
+public class PreferenceManagerImpl implements PreferenceManager {
 
     @Autowired
-    private PreferencesRepo preferencesRepo;
+    private PreferenceRepo preferenceRepo;
 
     @Override
     public Preferences getPreferencesByUserId(Long id) {
-        return preferencesRepo.findPreferencesByUserId(id);
+        return preferenceRepo.findPreferencesByUserId(id);
     }
 
     @Override
@@ -52,6 +52,6 @@ public class PreferencesManagerImpl implements PreferencesManager {
         // default preferences
         preferences.setMyPartyOnly(false);
         preferences.setMyStateOnly(false);
-        preferencesRepo.save(preferences);
+        preferenceRepo.save(preferences);
     }
 }

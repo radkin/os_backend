@@ -6,9 +6,9 @@ import co.inajar.oursponsors.models.propublica.congress.MiniCongressResponse;
 import co.inajar.oursponsors.models.propublica.senator.MiniSenatorResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorDetailsResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
-import co.inajar.oursponsors.services.fec.SponsorsManager;
-import co.inajar.oursponsors.services.preferences.PreferencesManager;
-import co.inajar.oursponsors.services.propublica.MembersManager;
+import co.inajar.oursponsors.services.fec.SponsorManager;
+import co.inajar.oursponsors.services.preferences.PreferenceManager;
+import co.inajar.oursponsors.services.propublica.MemberManager;
 import co.inajar.oursponsors.services.user.UserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +34,13 @@ public class ProPublicaController {
     private UserManager userManager;
 
     @Autowired
-    private MembersManager membersManager;
+    private MemberManager memberManager;
 
     @Autowired
-    private SponsorsManager sponsorsManager;
+    private SponsorManager sponsorManager;
 
     @Autowired
-    private PreferencesManager preferencesManager;
+    private PreferenceManager preferenceManager;
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "get_senators")
@@ -51,7 +51,7 @@ public class ProPublicaController {
         var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
-            var possibleSenators = membersManager.getSenators(user);
+            var possibleSenators = memberManager.getSenators(user);
             if (possibleSenators.isPresent()) {
                 var list = possibleSenators.get().parallelStream()
                         .map(SenatorResponse::new)
@@ -72,11 +72,11 @@ public class ProPublicaController {
 
         var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
         if (possibleUser.isPresent()) {
-            var preferences = preferencesManager.getPreferencesByUserId(possibleUser.get().getId());
-            var possibleSenator = membersManager.getSenatorById(Long.valueOf(id));
+            var preferences = preferenceManager.getPreferencesByUserId(possibleUser.get().getId());
+            var possibleSenator = memberManager.getSenatorById(Long.valueOf(id));
             if (possibleSenator.isPresent()) {
                 var senator = possibleSenator.get();
-                var possibleSenatorDetailsResponse = membersManager.gatherSenatorDetailsResponse(senator, preferences);
+                var possibleSenatorDetailsResponse = memberManager.gatherSenatorDetailsResponse(senator, preferences);
                 if (possibleSenatorDetailsResponse.isPresent()) {
                     response = possibleSenatorDetailsResponse.get();
                 }
@@ -101,10 +101,10 @@ public class ProPublicaController {
         var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
-            var possibleSenators = membersManager.getSenators(user);
+            var possibleSenators = memberManager.getSenators(user);
             if (possibleSenators.isPresent()) {
                 var list = possibleSenators.get().parallelStream()
-                        .map(senator -> new MiniSenatorResponse(senator, sponsorsManager))
+                        .map(senator -> new MiniSenatorResponse(senator, sponsorManager))
                         .toList();
                 response.addAll(list);
             }
@@ -123,7 +123,7 @@ public class ProPublicaController {
         var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
-            var possibleCongress = membersManager.getCongress(user);
+            var possibleCongress = memberManager.getCongress(user);
             if (possibleCongress.isPresent()) {
                 var list = possibleCongress.get().parallelStream()
                         .map(CongressResponse::new)
@@ -147,10 +147,10 @@ public class ProPublicaController {
         var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
-            var possibleCongress = membersManager.getCongress(user);
+            var possibleCongress = memberManager.getCongress(user);
             if (possibleCongress.isPresent()) {
                 var list = possibleCongress.get().parallelStream()
-                        .map(congress -> new MiniCongressResponse(congress, sponsorsManager))
+                        .map(congress -> new MiniCongressResponse(congress, sponsorManager))
                         .toList();
                 response.addAll(list);
             }
@@ -168,11 +168,11 @@ public class ProPublicaController {
 
         var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
         if (possibleUser.isPresent()) {
-            var preferences = preferencesManager.getPreferencesByUserId(possibleUser.get().getId());
-            var possibleCongress = membersManager.getCongressById(Long.valueOf(id));
+            var preferences = preferenceManager.getPreferencesByUserId(possibleUser.get().getId());
+            var possibleCongress = memberManager.getCongressById(Long.valueOf(id));
             if (possibleCongress.isPresent()) {
                 var congress = possibleCongress.get();
-                var possibleCongressDetailsResponse = membersManager.gatherCongressDetailsResponse(congress, preferences);
+                var possibleCongressDetailsResponse = memberManager.gatherCongressDetailsResponse(congress, preferences);
                 if (possibleCongressDetailsResponse.isPresent()) {
                     response = possibleCongressDetailsResponse.get();
                 }

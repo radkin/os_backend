@@ -13,8 +13,8 @@ import co.inajar.oursponsors.models.propublica.congress.CongressResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorDetailsResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
 import co.inajar.oursponsors.models.user.PreferencesResponse;
-import co.inajar.oursponsors.services.opensecrets.CandidatesManager;
-import co.inajar.oursponsors.services.preferences.PreferencesManager;
+import co.inajar.oursponsors.services.opensecrets.CandidateManager;
+import co.inajar.oursponsors.services.preferences.PreferenceManager;
 import co.inajar.oursponsors.services.user.UserManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class MembersImpl implements MembersManager {
+public class MemberImpl implements MemberManager {
 
     @Autowired
     private SenatorRepo senatorRepo;
@@ -34,16 +34,16 @@ public class MembersImpl implements MembersManager {
     @Autowired
     private UserManager userManager;
     @Autowired
-    private CandidatesManager candidatesManager;
+    private CandidateManager candidateManager;
 
     @Autowired
-    private PreferencesManager preferencesManager;
+    private PreferenceManager preferenceManager;
 
-    private Logger logger = LoggerFactory.getLogger(MembersApiImpl.class);
+    private Logger logger = LoggerFactory.getLogger(MemberApiImpl.class);
 
     @Override
     public Optional<List<Senator>> getSenators(User user) {
-        var preferences = preferencesManager.getPreferencesByUserId(user.getId());
+        var preferences = preferenceManager.getPreferencesByUserId(user.getId());
         if (Boolean.TRUE.equals(preferences.getMyStateOnly()) && Boolean.TRUE.equals(!preferences.getMyPartyOnly()))
             return senatorRepo.findSenatorsByState(user.getState());
         if (Boolean.TRUE.equals(preferences.getMyPartyOnly()) && Boolean.TRUE.equals(!preferences.getMyStateOnly()))
@@ -60,7 +60,7 @@ public class MembersImpl implements MembersManager {
 
     @Override
     public Optional<List<Congress>> getCongress(User user) {
-        var preferences = preferencesManager.getPreferencesByUserId(user.getId());
+        var preferences = preferenceManager.getPreferencesByUserId(user.getId());
         if (Boolean.TRUE.equals(preferences.getMyStateOnly()) && Boolean.TRUE.equals(!preferences.getMyPartyOnly()))
             return congressRepo.findCongressesByState(user.getState());
         if (Boolean.TRUE.equals(preferences.getMyPartyOnly()) && Boolean.TRUE.equals(!preferences.getMyStateOnly()))
@@ -86,7 +86,7 @@ public class MembersImpl implements MembersManager {
         var preferencesResponse = new PreferencesResponse(preferences);
         senatorDetails.setPreferences(preferencesResponse);
         // sectors
-        var possibleSectors = candidatesManager.getSectorsByCid(senator.getCrpId());
+        var possibleSectors = candidateManager.getSectorsByCid(senator.getCrpId());
         if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
             var list = possibleSectors.get().parallelStream()
                     .map(SmallSectorResponse::new)
@@ -94,7 +94,7 @@ public class MembersImpl implements MembersManager {
             senatorDetails.setSectors(list);
         }
         // contributors
-        var possibleContributors = candidatesManager.getContributorsByCid(senator.getCrpId());
+        var possibleContributors = candidateManager.getContributorsByCid(senator.getCrpId());
         if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() != 0) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)
@@ -116,7 +116,7 @@ public class MembersImpl implements MembersManager {
         var preferencesResponse = new PreferencesResponse(preferences);
         congressDetails.setPreferences(preferencesResponse);
         // sectors
-        var possibleSectors = candidatesManager.getSectorsByCid(congress.getCrpId());
+        var possibleSectors = candidateManager.getSectorsByCid(congress.getCrpId());
         if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
             var list = possibleSectors.get().parallelStream()
                     .map(SmallSectorResponse::new)
@@ -124,7 +124,7 @@ public class MembersImpl implements MembersManager {
             congressDetails.setSectors(list);
         }
         // contributors
-        var possibleContributors = candidatesManager.getContributorsByCid(congress.getCrpId());
+        var possibleContributors = candidateManager.getContributorsByCid(congress.getCrpId());
         if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() != 0) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)

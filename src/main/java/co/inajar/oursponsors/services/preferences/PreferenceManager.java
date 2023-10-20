@@ -4,7 +4,7 @@ import co.inajar.oursponsors.dbos.entities.Preferences;
 import co.inajar.oursponsors.dbos.entities.User;
 import co.inajar.oursponsors.models.user.PreferencesRequest;
 
-public interface PreferencesManager {
+public interface PreferenceManager {
 
     Preferences getPreferencesByUserId(Long id);
 

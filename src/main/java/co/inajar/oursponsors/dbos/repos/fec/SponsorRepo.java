@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Transactional(readOnly = true)
-public interface SponsorsRepo extends JpaRepository<Sponsor, Long> {
+public interface SponsorRepo extends JpaRepository<Sponsor, Long> {
 
     Sponsor findByContributorName(String name);
 

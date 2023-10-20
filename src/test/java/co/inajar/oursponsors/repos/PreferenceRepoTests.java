@@ -1,15 +1,15 @@
 package co.inajar.oursponsors.repos;
 
-import co.inajar.oursponsors.dbos.repos.PreferencesRepo;
+import co.inajar.oursponsors.dbos.repos.PreferenceRepo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class PreferencesRepoTests {
+public class PreferenceRepoTests {
 
     @Autowired
-    private PreferencesRepo preferencesRepo;
+    private PreferenceRepo preferenceRepo;
 
     @Test
     public void PreferencesRepo_SaveAll_ReturnsSavedPreferences() {

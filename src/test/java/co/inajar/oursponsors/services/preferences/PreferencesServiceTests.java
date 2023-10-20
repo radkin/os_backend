@@ -1,6 +1,6 @@
 package co.inajar.oursponsors.services.preferences;
 
-import co.inajar.oursponsors.dbos.repos.PreferencesRepo;
+import co.inajar.oursponsors.dbos.repos.PreferenceRepo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -10,10 +10,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class PreferencesServiceTests {
 
     @Mock
-    private PreferencesRepo preferencesRepo;
+    private PreferenceRepo preferenceRepo;
 
     @InjectMocks
-    private PreferencesManagerImpl preferencesManager;
+    private PreferenceManagerImpl preferencesManager;
 
     // need to backfill preferences repo tests.
 
