@@ -24,7 +24,7 @@ import static co.inajar.oursponsors.security.SecurityConstants.*;
 public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
     private final ApplicationConfigurationProperties configProps;
-    private final UserManager userManager;
+    private UserManager userManager;
 
     public JwtAuthenticationFilter(AuthenticationManager authManager, ApplicationConfigurationProperties configProps, UserManager userManager) {
         super(authManager);

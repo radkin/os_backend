@@ -11,7 +11,9 @@ import java.util.Optional;
 public interface UserRepo extends JpaRepository<User, Long> {
     Optional<User> findUserByApiKey(String apiKey);
 
-//    Optional<User> findById(Long userId);
+    Optional<User> findById(Long userId);
+
+    List<User> findAllByIdIn(List<Long> ids);
 
     Optional<User> findUserByGoogleUid(String googleUid);
 }

@@ -1,9 +1,9 @@
 package co.inajar.oursponsors.services.propublica;
 
-import co.inajar.oursponsors.dbos.entities.Preferences;
 import co.inajar.oursponsors.dbos.entities.User;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
+import co.inajar.oursponsors.dbos.entities.user.Preferences;
 import co.inajar.oursponsors.dbos.repos.propublica.CongressRepo;
 import co.inajar.oursponsors.dbos.repos.propublica.SenatorRepo;
 import co.inajar.oursponsors.models.opensecrets.contributor.SmallContributorResponse;
@@ -13,9 +13,10 @@ import co.inajar.oursponsors.models.propublica.congress.CongressResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorDetailsResponse;
 import co.inajar.oursponsors.models.propublica.senator.SenatorResponse;
 import co.inajar.oursponsors.models.user.PreferencesResponse;
-import co.inajar.oursponsors.services.opensecrets.ContributorManager;
-import co.inajar.oursponsors.services.opensecrets.SectorManager;
-import co.inajar.oursponsors.services.preferences.PreferencesManager;
+import co.inajar.oursponsors.services.opensecrets.CandidatesManager;
+import co.inajar.oursponsors.services.user.UserManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,39 +24,30 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class MemberImpl implements MemberManager {
+public class MembersImpl implements MembersManager {
 
     @Autowired
     private SenatorRepo senatorRepo;
     @Autowired
     private CongressRepo congressRepo;
-
     @Autowired
-    private SectorManager sectorManager;
-
+    private UserManager userManager;
     @Autowired
-    private ContributorManager contributorManager;
+    private CandidatesManager candidatesManager;
 
-    @Autowired
-    private PreferencesManager preferencesManager;
+    private Logger logger = LoggerFactory.getLogger(MembersApiImpl.class);
 
     @Override
     public Optional<List<Senator>> getSenators(User user) {
-        var preferences = preferencesManager.getPreferencesByUserId(user.getId());
-        boolean stateOnly = Boolean.TRUE.equals(preferences.getMyStateOnly());
-        boolean partyOnly = Boolean.TRUE.equals(preferences.getMyPartyOnly());
-
-        if (stateOnly && partyOnly) {
-            return senatorRepo.findSenatorsByStateAndParty(user.getState(), user.getParty());
-        } else if (stateOnly) {
+        var preferences = userManager.getPreferencesByUserId(user.getId());
+        if (Boolean.TRUE.equals(preferences.getMyStateOnly()) && Boolean.TRUE.equals(!preferences.getMyPartyOnly()))
             return senatorRepo.findSenatorsByState(user.getState());
-        } else if (partyOnly) {
+        if (Boolean.TRUE.equals(preferences.getMyPartyOnly()) && Boolean.TRUE.equals(!preferences.getMyStateOnly()))
             return senatorRepo.findSenatorsByParty(user.getParty());
-        }
-
+        if (preferences.getMyStateOnly() && preferences.getMyPartyOnly())
+            return senatorRepo.findSenatorsByStateAndParty(user.getState(), user.getParty());
         return Optional.of(senatorRepo.findAll());
     }
-
 
     @Override
     public Optional<Senator> getSenatorById(Long id) {
@@ -64,18 +56,13 @@ public class MemberImpl implements MemberManager {
 
     @Override
     public Optional<List<Congress>> getCongress(User user) {
-        var preferences = preferencesManager.getPreferencesByUserId(user.getId());
-        boolean stateOnly = Boolean.TRUE.equals(preferences.getMyStateOnly());
-        boolean partyOnly = Boolean.TRUE.equals(preferences.getMyPartyOnly());
-
-        if (stateOnly && partyOnly) {
-            return congressRepo.findCongressesByStateAndParty(user.getState(), user.getParty());
-        } else if (stateOnly) {
+        var preferences = userManager.getPreferencesByUserId(user.getId());
+        if (Boolean.TRUE.equals(preferences.getMyStateOnly()) && Boolean.TRUE.equals(!preferences.getMyPartyOnly()))
             return congressRepo.findCongressesByState(user.getState());
-        } else if (partyOnly) {
+        if (Boolean.TRUE.equals(preferences.getMyPartyOnly()) && Boolean.TRUE.equals(!preferences.getMyStateOnly()))
             return congressRepo.findCongressesByParty(user.getParty());
-        }
-
+        if (preferences.getMyStateOnly() && preferences.getMyPartyOnly())
+            return congressRepo.findCongressesByStateAndParty(user.getState(), user.getParty());
         return Optional.of(congressRepo.findAll());
     }
 
@@ -95,16 +82,16 @@ public class MemberImpl implements MemberManager {
         var preferencesResponse = new PreferencesResponse(preferences);
         senatorDetails.setPreferences(preferencesResponse);
         // sectors
-        var possibleSectors = sectorManager.getSectorsByCid(senator.getCrpId());
-        if (possibleSectors.isPresent() && !possibleSectors.get().isEmpty()) {
+        var possibleSectors = candidatesManager.getSectorsByCid(senator.getCrpId());
+        if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
             var list = possibleSectors.get().parallelStream()
                     .map(SmallSectorResponse::new)
                     .toList();
             senatorDetails.setSectors(list);
         }
         // contributors
-        var possibleContributors = contributorManager.getContributorsByCid(senator.getCrpId());
-        if (possibleContributors.isPresent() && !possibleContributors.get().isEmpty()) {
+        var possibleContributors = candidatesManager.getContributorsByCid(senator.getCrpId());
+        if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() != 0) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)
                     .toList();
@@ -125,16 +112,16 @@ public class MemberImpl implements MemberManager {
         var preferencesResponse = new PreferencesResponse(preferences);
         congressDetails.setPreferences(preferencesResponse);
         // sectors
-        var possibleSectors = sectorManager.getSectorsByCid(congress.getCrpId());
-        if (possibleSectors.isPresent() && !possibleSectors.get().isEmpty()) {
+        var possibleSectors = candidatesManager.getSectorsByCid(congress.getCrpId());
+        if (possibleSectors.isPresent() && !possibleSectors.isEmpty() && possibleSectors.get().size() != 0) {
             var list = possibleSectors.get().parallelStream()
                     .map(SmallSectorResponse::new)
                     .toList();
             congressDetails.setSectors(list);
         }
         // contributors
-        var possibleContributors = contributorManager.getContributorsByCid(congress.getCrpId());
-        if (possibleContributors.isPresent() && !possibleContributors.get().isEmpty()) {
+        var possibleContributors = candidatesManager.getContributorsByCid(congress.getCrpId());
+        if (possibleContributors.isPresent() && !possibleContributors.isEmpty() && possibleContributors.get().size() != 0) {
             var list = possibleContributors.get().parallelStream()
                     .map(SmallContributorResponse::new)
                     .toList();

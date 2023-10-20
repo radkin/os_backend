@@ -1,5 +1,6 @@
-package co.inajar.oursponsors.dbos.entities;
+package co.inajar.oursponsors.dbos.entities.user;
 
+import co.inajar.oursponsors.dbos.entities.User;
 import lombok.Data;
 
 import javax.persistence.*;

@@ -10,15 +10,16 @@ import java.util.List;
 
 @Data
 public class SenatorDetailsResponse {
-    @JsonProperty("senator")
+    @JsonProperty(value = "senator")
     private SenatorResponse senator;
-
-    @JsonProperty("sectors")
+    @JsonProperty(value = "sectors")
     private List<SmallSectorResponse> sectors;
-
-    @JsonProperty("contributors")
+    @JsonProperty(value = "contributors")
     private List<SmallContributorResponse> contributors;
-
-    @JsonProperty("preferences")
+    @JsonProperty(value = "preferences")
     private PreferencesResponse preferences;
+
+    public SenatorDetailsResponse() {
+    }
+
 }

@@ -4,7 +4,7 @@ import co.inajar.oursponsors.controllers.propublica.ProPublicaController;
 import co.inajar.oursponsors.dbos.entities.User;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
-import co.inajar.oursponsors.services.propublica.MemberManager;
+import co.inajar.oursponsors.services.propublica.MembersManager;
 import co.inajar.oursponsors.services.user.UserManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ public class ProPublicaControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private MemberManager memberManager;
+    private MembersManager membersManager;
 
     @MockBean
     private UserManager userManager;
@@ -56,7 +56,7 @@ public class ProPublicaControllerTest {
         when(userManager.getUserByGoogleUid(GOOGLE_UID)).thenReturn(Optional.of(user));
 
         ArrayList<Senator> senators = new ArrayList<>();
-        when(memberManager.getSenators(user)).thenReturn(Optional.of(senators));
+        when(membersManager.getSenators(user)).thenReturn(Optional.of(senators));
         mockMvc.perform(get("/propublica/get_senators"))
                 .andExpect(status().isOk())
                 .andDo(print());
@@ -69,7 +69,7 @@ public class ProPublicaControllerTest {
         when(userManager.getUserByGoogleUid(GOOGLE_UID)).thenReturn(Optional.of(user));
 
         ArrayList<Congress> congress = new ArrayList<>();
-        when(memberManager.getCongress(user)).thenReturn(Optional.of(congress));
+        when(membersManager.getCongress(user)).thenReturn(Optional.of(congress));
         mockMvc.perform(get("/propublica/get_congress"))
                 .andExpect(status().isOk())
                 .andDo(print());

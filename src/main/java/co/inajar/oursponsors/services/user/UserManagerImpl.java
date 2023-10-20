@@ -1,7 +1,10 @@
 package co.inajar.oursponsors.services.user;
 
 import co.inajar.oursponsors.dbos.entities.User;
+import co.inajar.oursponsors.dbos.entities.user.Preferences;
+import co.inajar.oursponsors.dbos.repos.PreferencesRepo;
 import co.inajar.oursponsors.dbos.repos.UserRepo;
+import co.inajar.oursponsors.models.user.PreferencesRequest;
 import co.inajar.oursponsors.models.user.UserRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,8 @@ public class UserManagerImpl implements UserManager {
 
     @Autowired
     private UserRepo userRepo;
+    @Autowired
+    private PreferencesRepo preferencesRepo;
 
     @Override
     public Optional<User> getUserById(Long id) {
@@ -29,6 +34,33 @@ public class UserManagerImpl implements UserManager {
         return userRepo.findUserByApiKey(apiKey);
     }
 
+    @Override
+    public Preferences getPreferencesByUserId(Long id) {
+        return preferencesRepo.findPreferencesByUserId(id);
+    }
+
+    @Override
+    public Preferences updateUserPreferences(PreferencesRequest request, Long id) {
+        var preferences = getPreferencesByUserId(id);
+
+        updatePreference(request.getMyStateOnly(), preferences::setMyStateOnly);
+        updatePreference(request.getMyPartyOnly(), preferences::setMyPartyOnly);
+        updatePreference(request.getTwitterHide(), preferences::setTwitterHide);
+        updatePreference(request.getFacebookHide(), preferences::setFacebookHide);
+        updatePreference(request.getYoutubehide(), preferences::setYoutubeHide);
+        updatePreference(request.getGoogleEntityHide(), preferences::setGoogleEntityHide);
+        updatePreference(request.getCspanHide(), preferences::setCspanHide);
+        updatePreference(request.getGovTrackHide(), preferences::setGovTrackHide);
+        updatePreference(request.getOpenSecretsHide(), preferences::setOpenSecretsHide);
+
+        return preferences;
+    }
+
+    private <T> void updatePreference(T value, Consumer<T> setter) {
+        if (value != null) {
+            setter.accept(value);
+        }
+    }
 
     @Override
     public User createOrUpdateUser(UserRequest request, User user) {
@@ -70,5 +102,13 @@ public class UserManagerImpl implements UserManager {
         String pwd = bcryptPasswordEncoder.encode("password");
         */
 
-
+    @Override
+    public void createUserPreferences(User user) {
+        Preferences preferences = new Preferences();
+        preferences.setUser(user);
+        // default preferences
+        preferences.setMyPartyOnly(false);
+        preferences.setMyStateOnly(false);
+        preferencesRepo.save(preferences);
+    }
 }
