@@ -82,6 +82,7 @@ public class UserController {
         return new ResponseEntity<>(response, httpResponse);
     }
 
+    // Note: User ID 1 is the default user. It is there for adding new users and never changes.
     @PreAuthorize("isAuthenticated()")
     @PostMapping(path = "create_or_update_user")
     public ResponseEntity<UserResponse> updateUser(@RequestBody UserRequest data,
@@ -90,21 +91,25 @@ public class UserController {
         var httpResponse = HttpStatus.OK;
         var possibleUser = userManager.getUserByApiKey(headers.get(INAJAR_TOKEN));
         if (possibleUser.isPresent()) {
-
-            User user = possibleUser.get();
-            var userUpdate = userManager.createOrUpdateUser(data, user);
-            response = new UserResponse(userUpdate);
-        } else {
-            logger.info(UNABLE_TO_FIND_USER, headers.get(INAJAR_TOKEN), CREATING_USER);
-//            User user = new User();
-//            // default state & party
-//            user.setState("IL");
-//            user.setParty("R");
-//            var createUser = userManager.createOrUpdateUser(data, user);
-//            userManager.createUserPreferences(user);
-//            response = new UserResponse(createUser);
+            User foundUser = possibleUser.get();
+            // Note: the below code assumes we have changed inajar-token to the new user!
+            if (!foundUser.getId().equals(1L)) {
+                var userUpdate = userManager.createOrUpdateUser(data, foundUser);
+                response = new UserResponse(userUpdate);
+            } else if (!data.getInajarApiKey().equals(foundUser.getApiKey())) {
+                logger.info(UNABLE_TO_FIND_USER, headers.get(INAJAR_TOKEN), CREATING_USER);
+                User user = new User();
+                user.setEmail(data.getEmail());
+                // default state & party
+                user.setState("IL");
+                user.setParty("R");
+                user.setApiKey(data.getInajarApiKey());
+                var createUser = userManager.createOrUpdateUser(data, user);
+                userManager.createUserPreferences(user);
+                response = new UserResponse(createUser);
+            }
         }
         return new ResponseEntity<>(response, httpResponse);
     }
-}
 
+}

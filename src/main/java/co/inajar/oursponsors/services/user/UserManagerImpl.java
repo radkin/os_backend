@@ -72,6 +72,7 @@ public class UserManagerImpl implements UserManager {
         updateUserField(request::getState, user::setState);
         updateUserField(request::getIsEnabled, user::setIsEnabled);
         updateUserField(request::getIsLoggedIn, user::setIsLoggedIn);
+        updateUserField(request::getInajarApiKey, user::setApiKey);
         updateUserField(request::getName, user::setName);
         return userRepo.save(user);
     }

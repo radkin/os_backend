@@ -38,4 +38,7 @@ public class UserRequest {
 
     @JsonAlias(value = "name")
     private String name;
+
+    @JsonAlias(value = "google_uid")
+    private String inajarApiKey;
 }
