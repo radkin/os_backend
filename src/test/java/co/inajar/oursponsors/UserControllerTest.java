@@ -26,11 +26,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
 
-    private static final String GOOGLE_UID = "google-uid";
-
     @Autowired
     private WebApplicationContext wac;
     private MockMvc mockMvc;
+
+    private static final String INAJAR_TOKEN = "inajar-token";
 
     @MockBean
     private UserManager userManager;
@@ -44,7 +44,7 @@ public class UserControllerTest {
     public void testGetUsers() throws Exception {
 
         User user = new User();
-        when(userManager.getUserByGoogleUid(GOOGLE_UID)).thenReturn(Optional.of(user));
+        when(userManager.getUserByApiKey(INAJAR_TOKEN)).thenReturn(Optional.of(user));
         mockMvc.perform(get("/user/get_user"))
                 .andExpect(status().isOk())
                 .andDo(print());

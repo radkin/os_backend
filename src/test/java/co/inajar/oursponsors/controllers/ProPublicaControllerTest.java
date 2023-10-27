@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ProPublicaController.class)
 public class ProPublicaControllerTest {
 
-    private static final String GOOGLE_UID = "google-uid";
+    private static final String INAJAR_TOKEN = "inajar-token";
 
     @Autowired
     private WebApplicationContext wac;
@@ -53,7 +53,7 @@ public class ProPublicaControllerTest {
     public void testGetSenators() throws Exception {
 
         User user = new User();
-        when(userManager.getUserByGoogleUid(GOOGLE_UID)).thenReturn(Optional.of(user));
+        when(userManager.getUserByApiKey(INAJAR_TOKEN)).thenReturn(Optional.of(user));
 
         ArrayList<Senator> senators = new ArrayList<>();
         when(memberManager.getSenators(user)).thenReturn(Optional.of(senators));
@@ -66,7 +66,7 @@ public class ProPublicaControllerTest {
     public void testGetCongress() throws Exception {
 
         User user = new User();
-        when(userManager.getUserByGoogleUid(GOOGLE_UID)).thenReturn(Optional.of(user));
+        when(userManager.getUserByApiKey(INAJAR_TOKEN)).thenReturn(Optional.of(user));
 
         ArrayList<Congress> congress = new ArrayList<>();
         when(memberManager.getCongress(user)).thenReturn(Optional.of(congress));

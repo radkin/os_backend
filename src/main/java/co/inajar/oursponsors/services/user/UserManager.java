@@ -18,7 +18,5 @@ public interface UserManager {
 
     User createOrUpdateUser(UserRequest data, User user);
 
-    Optional<User> getUserByGoogleUid(String googleUid);
-
     void createUserPreferences(User user);
 }
