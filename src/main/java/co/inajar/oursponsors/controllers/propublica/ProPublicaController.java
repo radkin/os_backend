@@ -26,8 +26,9 @@ import java.util.Map;
 @RequestMapping(path = "/propublica")
 public class ProPublicaController {
 
+    // Note: Google UID and INAJAR-TOKEN are the same
     private static final String UNABLE_TO_FIND_USER = "Unable to find User with Google UID {}";
-    private static final String GOOGLE_UID = "google-uid";
+    private static final String INAJAR_TOKEN = "inajar-token";
     private Logger logger = LoggerFactory.getLogger(ProPublicaController.class);
 
     @Autowired
@@ -48,7 +49,7 @@ public class ProPublicaController {
         var response = new ArrayList<SenatorResponse>();
         var httpResponse = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByApiKey(headers.get(INAJAR_TOKEN));
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
             var possibleSenators = memberManager.getSenators(user);
@@ -59,7 +60,7 @@ public class ProPublicaController {
                 response.addAll(list);
             }
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, headers.get(INAJAR_TOKEN));
         }
         return new ResponseEntity<>(response, httpResponse);
     }
@@ -70,7 +71,7 @@ public class ProPublicaController {
         var response = new SenatorDetailsResponse();
         var httpStatus = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByApiKey(headers.get(INAJAR_TOKEN));
         if (possibleUser.isPresent()) {
             var preferences = preferenceManager.getPreferencesByUserId(possibleUser.get().getId());
             var possibleSenator = memberManager.getSenatorById(Long.valueOf(id));
@@ -82,7 +83,7 @@ public class ProPublicaController {
                 }
             }
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, headers.get(INAJAR_TOKEN));
         }
 
 
@@ -98,7 +99,7 @@ public class ProPublicaController {
         var response = new ArrayList<MiniSenatorResponse>();
         var httpResponse = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByApiKey(headers.get(INAJAR_TOKEN));
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
             var possibleSenators = memberManager.getSenators(user);
@@ -109,7 +110,7 @@ public class ProPublicaController {
                 response.addAll(list);
             }
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, headers.get(INAJAR_TOKEN));
         }
         return new ResponseEntity<>(response, httpResponse);
     }
@@ -120,7 +121,7 @@ public class ProPublicaController {
         var response = new ArrayList<CongressResponse>();
         var httpResponse = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByApiKey(headers.get(INAJAR_TOKEN));
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
             var possibleCongress = memberManager.getCongress(user);
@@ -131,7 +132,7 @@ public class ProPublicaController {
                 response.addAll(list);
             }
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, headers.get(INAJAR_TOKEN));
         }
         return new ResponseEntity<>(response, httpResponse);
     }
@@ -144,7 +145,7 @@ public class ProPublicaController {
         var response = new ArrayList<MiniCongressResponse>();
         var httpResponse = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByApiKey(headers.get(INAJAR_TOKEN));
         if (possibleUser.isPresent()) {
             var user = possibleUser.get();
             var possibleCongress = memberManager.getCongress(user);
@@ -155,7 +156,7 @@ public class ProPublicaController {
                 response.addAll(list);
             }
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, headers.get(INAJAR_TOKEN));
         }
         return new ResponseEntity<>(response, httpResponse);
     }
@@ -166,7 +167,7 @@ public class ProPublicaController {
         var response = new CongressDetailsResponse();
         var httpStatus = HttpStatus.OK;
 
-        var possibleUser = userManager.getUserByGoogleUid(headers.get(GOOGLE_UID));
+        var possibleUser = userManager.getUserByApiKey(headers.get(INAJAR_TOKEN));
         if (possibleUser.isPresent()) {
             var preferences = preferenceManager.getPreferencesByUserId(possibleUser.get().getId());
             var possibleCongress = memberManager.getCongressById(Long.valueOf(id));
@@ -178,7 +179,7 @@ public class ProPublicaController {
                 }
             }
         } else {
-            logger.error(UNABLE_TO_FIND_USER, headers.get(GOOGLE_UID));
+            logger.error(UNABLE_TO_FIND_USER, headers.get(INAJAR_TOKEN));
         }
 
 

@@ -71,8 +71,8 @@ public class UserManagerImpl implements UserManager {
         updateUserField(request::getGender, user::setGender);
         updateUserField(request::getState, user::setState);
         updateUserField(request::getIsEnabled, user::setIsEnabled);
-        updateUserField(request::getGoogleUid, user::setGoogleUid);
         updateUserField(request::getIsLoggedIn, user::setIsLoggedIn);
+        updateUserField(request::getInajarApiKey, user::setApiKey);
         updateUserField(request::getName, user::setName);
         return userRepo.save(user);
     }
@@ -90,17 +90,6 @@ public class UserManagerImpl implements UserManager {
             setter.accept(value);
         }
     }
-
-    @Override
-    public Optional<User> getUserByGoogleUid(String googleUid) {
-        return userRepo.findUserByGoogleUid(googleUid);
-    }
-
-    // ToDo: createUser, updateUser with password encode and decode
-        /*
-        BCryptPasswordEncoder bcryptPasswordEncoder = new BCryptPasswordEncoder();
-        String pwd = bcryptPasswordEncoder.encode("password");
-        */
 
     @Override
     public void createUserPreferences(User user) {

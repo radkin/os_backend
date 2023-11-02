@@ -13,7 +13,4 @@ public interface UserRepo extends JpaRepository<User, Long> {
 
     Optional<User> findById(Long userId);
 
-    List<User> findAllByIdIn(List<Long> ids);
-
-    Optional<User> findUserByGoogleUid(String googleUid);
 }

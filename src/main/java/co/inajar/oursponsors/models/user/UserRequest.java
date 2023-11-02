@@ -40,5 +40,5 @@ public class UserRequest {
     private String name;
 
     @JsonAlias(value = "google_uid")
-    private String googleUid;
+    private String inajarApiKey;
 }

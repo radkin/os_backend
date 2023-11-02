@@ -29,8 +29,6 @@ public class UserResponse {
     private Boolean isEnabled;
     @JsonProperty(value = "is_logged_in")
     private Boolean isLoggedIn;
-    @JsonProperty(value = "google_uid")
-    private String googleUid;
 
     public UserResponse() {
     }
@@ -47,6 +45,5 @@ public class UserResponse {
         party = user.getParty();
         isEnabled = user.getIsEnabled();
         isLoggedIn = user.getIsLoggedIn();
-        googleUid = user.getGoogleUid();
     }
 }
