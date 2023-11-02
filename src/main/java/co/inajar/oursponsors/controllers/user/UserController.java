@@ -100,12 +100,14 @@ public class UserController {
                 logger.info(UNABLE_TO_FIND_USER, headers.get(INAJAR_TOKEN), CREATING_USER);
                 User user = new User();
                 user.setEmail(data.getEmail());
+                user.setFirstName(data.getFirstName());
+                user.setLastName(data.getLastName());
                 // default state & party
                 user.setState("IL");
                 user.setParty("R");
                 user.setApiKey(data.getInajarApiKey());
                 var createUser = userManager.createOrUpdateUser(data, user);
-                userManager.createUserPreferences(user);
+                userManager.createUserPreferences(createUser);
                 response = new UserResponse(createUser);
             }
         }
