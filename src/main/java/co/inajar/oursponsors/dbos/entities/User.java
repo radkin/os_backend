@@ -1,10 +1,16 @@
 package co.inajar.oursponsors.dbos.entities;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "users")
 @Data
 public class User {
