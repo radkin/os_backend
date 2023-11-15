@@ -121,7 +121,7 @@ public class SponsorImpl implements SponsorManager {
         return Optional.ofNullable(sponsorRepo.findByContributorName(name));
     }
 
-    private Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, Long osId, String chamber) {
+    public Sponsor mapFecDonorToSponsor(FecCommitteeDonor donor, Long osId, String chamber) {
         var newSponsor = new Sponsor();
         var receiptAmount = new BigDecimal(donor.getContributionReceiptAmount());
         newSponsor.setContributionReceiptAmount(receiptAmount);
