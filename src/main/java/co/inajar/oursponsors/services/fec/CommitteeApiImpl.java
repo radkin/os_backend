@@ -247,4 +247,17 @@ public class CommitteeApiImpl implements CommitteeApiManager {
         return committeeId;
     }
 
+    public Committee createCommittee(Object entity, String cmte) {
+        var committee = new Committee();
+        if (entity instanceof Senator senator) {
+            committee.setPpId(senator.getProPublicaId());
+            committee.setTwoYearTransactionPeriod(calcTwoYearTransactionPeriod(senator.getNextElection()));
+        } else if (entity instanceof Congress congress) {
+            committee.setPpId(congress.getProPublicaId());
+            committee.setTwoYearTransactionPeriod(calcTwoYearTransactionPeriod(congress.getNextElection()));
+        }
+        committee.setFecCommitteeId(cmte);
+        return committeeRepo.save(committee);
+    }
+
 }

@@ -1,5 +1,6 @@
 package co.inajar.oursponsors.services.fec;
 
+import co.inajar.oursponsors.dbos.entities.campaigns.Committee;
 import co.inajar.oursponsors.dbos.entities.chambers.Congress;
 import co.inajar.oursponsors.dbos.entities.chambers.Senator;
 import co.inajar.oursponsors.models.fec.FecCommitteeDonor;
@@ -14,4 +15,6 @@ public interface CommitteeApiManager {
     CampaignResponse getSenatorCampaignListResponse(Senator senator);
 
     CampaignResponse getCongressCampaignListResponse(Congress congress);
+
+    Committee createCommittee(Object entity, String cmte);
 }
