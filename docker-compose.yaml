@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  dbpostgresql:
+    image: "postgres:12"
+    container_name: dbpostgresql
+    networks:
+      - os-pgsql
+    ports:
+      - "5432:5432"
+    volumes:
+      - /home/noel/docker/postgres/docker-pg-vol/data:/var/lib/postgresql/data
+      - /home/noel/docker/postgres/init/initData.sql:/docker-entrypoint-initdb.d/initData.sql.1
+    environment:
+      POSTGRES_DB: testing_db
+      POSTGRES_USER: testing
+      POSTGRES_PASSWORD: testingPassword
+  app:
+    container_name: os-backend
+    image: radkin/os_backend
+    networks:
+      - os-pgsql
+    build: ./
+    ports:
+      - "5000:5000"
+    depends_on:
+      - dbpostgresql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://dbpostgresql:5432/testing_db
+      SPRING_DATASOURCE_USERNAME: testing
+      SPRING_DATASOURCE_PASSWORD: testingPassword
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      PROPUBLICA_TOKEN: fakeToken1
+      OPENSECRETS_TOKEN: fakeToken2
+      FEC_TOKEN: fakeToken3
+networks:
+  os-pgsql:
