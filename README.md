@@ -4,5 +4,3 @@
 - [Tests](docs/Tests.md)
 
   ![root directory](docs/images/oursponsors.jpg)
-
-triggering github hook
