@@ -150,7 +150,7 @@ public class SenatorRepoTests {
         senatorRepo.save(senator1);
         senatorRepo.save(senator2);
 
-        List<Senator> foundSenators = senatorRepo.findSenatorsByStateAndParty("CA", "R").get();
+        List<Senator> foundSenators = senatorRepo.findSenatorsByStateAndParty("OH", "D").get();
 
         Assertions.assertThat(foundSenators.size()).isGreaterThan(0);
 
