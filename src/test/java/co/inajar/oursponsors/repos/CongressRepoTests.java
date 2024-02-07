@@ -150,9 +150,9 @@ public class CongressRepoTests {
         congressRepo.save(congress1);
         congressRepo.save(congress2);
 
-        List<Congress> foundCongresss = congressRepo.findCongressesByStateAndParty("CA", "R").get();
+        List<Congress> foundCongress = congressRepo.findCongressesByStateAndParty("OH", "D").get();
 
-        Assertions.assertThat(foundCongresss.size()).isGreaterThan(0);
+        Assertions.assertThat(foundCongress.size()).isGreaterThan(0);
 
     }
 }
